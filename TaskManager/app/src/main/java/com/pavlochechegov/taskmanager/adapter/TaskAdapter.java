@@ -20,7 +20,7 @@ public class TaskAdapter extends BaseAdapter {
         mTaskArrayList = taskArrayList;
     }
 
-    class ViewHolder {
+    static class ViewHolder {
         TextView mTextViewTaskTitle, mTextViewTaskComment;
     }
 
