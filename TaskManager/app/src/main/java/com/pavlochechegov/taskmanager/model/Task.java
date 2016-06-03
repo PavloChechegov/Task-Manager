@@ -13,22 +13,39 @@ public class Task implements Parcelable{
     private static final String COMMENT_TASK = "comment_task";
     private static final String START_DATE_TASK = "start_date_task";
     private static final String END_DATE_TASK = "end_date_task";
+    private static final String KEY_COLOR = "key_color";
 
     private String mTaskTitle;
     private String mTaskComment;
-    private String mTaskStartTime;
-    private String mTaskEndTime;
-
+    private long mTaskStartTime;
+    private long mTaskEndTime;
+    private int mTaskColor;
+    private boolean isSelected;
     public Task() {}
 
-    public Task(String taskTitle, String taskComment, String taskStartTime, String taskEndTime) {
+    public Task(String taskTitle, String taskComment, long taskStartTime, long taskEndTime, int color) {
         mTaskTitle = taskTitle;
         mTaskComment = taskComment;
         mTaskStartTime = taskStartTime;
         mTaskEndTime = taskEndTime;
+        mTaskColor = color;
     }
 
+    public boolean isSelected() {
+        return isSelected;
+    }
+
+    public void setSelected(boolean isSelected) {
+        this.isSelected = isSelected;
+    }
     //getter and setter
+    public int getTaskColor() {
+        return mTaskColor;
+    }
+
+    public void setTaskColor(int taskColor) {
+        mTaskColor = taskColor;
+    }
     public String getTaskTitle() {
         return mTaskTitle;
     }
@@ -45,19 +62,19 @@ public class Task implements Parcelable{
         mTaskComment = taskComment;
     }
 
-    public String getTaskEndTime() {
+    public long getTaskEndTime() {
         return mTaskEndTime;
     }
 
-    public void setTaskEndTime(String taskEndTime) {
+    public void setTaskEndTime(long taskEndTime) {
         mTaskEndTime = taskEndTime;
     }
 
-    public String getTaskStartTime() {
+    public long getTaskStartTime() {
         return mTaskStartTime;
     }
 
-    public void setTaskStartTime(String taskStartTime) {
+    public void setTaskStartTime(long taskStartTime) {
         mTaskStartTime = taskStartTime;
     }
     //getter and setter
@@ -65,8 +82,9 @@ public class Task implements Parcelable{
     protected Task(Parcel in) {
         mTaskTitle = in.readString();
         mTaskComment = in.readString();
-        mTaskStartTime = in.readString();
-        mTaskEndTime = in.readString();
+        mTaskStartTime = in.readLong();
+        mTaskEndTime = in.readLong();
+        mTaskColor = in.readInt();
     }
 
     public static final Creator<Task> CREATOR = new Creator<Task>() {
@@ -90,36 +108,30 @@ public class Task implements Parcelable{
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(mTaskTitle);
         dest.writeString(mTaskComment);
-        dest.writeString(mTaskStartTime);
-        dest.writeString(mTaskEndTime);
+        dest.writeLong(mTaskStartTime);
+        dest.writeLong(mTaskEndTime);
+        dest.writeInt(mTaskColor);
     }
 
     public JSONObject toJSON() throws JSONException {
         JSONObject jsonObject = new JSONObject();
-        //JSONArray jsonArray = new JSONArray();
-
         try {
-
             jsonObject.put(TITLE_TASK, mTaskTitle);
             jsonObject.put(COMMENT_TASK, mTaskComment);
             jsonObject.put(START_DATE_TASK, mTaskStartTime);
             jsonObject.put(END_DATE_TASK, mTaskEndTime);
-//            jsonObject.getJSONArray("task");
-            //   jsonArray.put(jsonObject);
-
-            return jsonObject;
+            jsonObject.put(KEY_COLOR, mTaskColor);
 
         } catch (JSONException e) {
             e.printStackTrace();
-            return null;
         }
+        return jsonObject;
     }
     public Task(JSONObject jsonObject) throws JSONException {
         mTaskTitle = jsonObject.getString(TITLE_TASK);
-        Log.i("mStringTitle: ____", mTaskTitle);
         mTaskComment = jsonObject.getString(COMMENT_TASK);
-        mTaskStartTime = jsonObject.getString(START_DATE_TASK);
-        mTaskEndTime = jsonObject.getString(END_DATE_TASK);
-
+        mTaskStartTime = jsonObject.getLong(START_DATE_TASK);
+        mTaskEndTime = jsonObject.getLong(END_DATE_TASK);
+        mTaskColor = jsonObject.getInt(KEY_COLOR);
     }
 }

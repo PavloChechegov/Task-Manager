@@ -6,4 +6,5 @@
     <string name="comment_task">Comment</string>
     <string name="enter_task">Title</string>
     <string name="add_new_task">Add new task</string>
+    <string name="action_add">add to listView</string>
 </resources>

@@ -24,7 +24,8 @@
               android:layout_height="wrap_content"
               android:textSize="@dimen/text_size_time"
               android:id="@+id/tvTaskTime"
-    android:gravity="center_horizontal"/>
+    android:gravity="center_horizontal"
+    android:visibility="visible"/>
 
 
 </LinearLayout>

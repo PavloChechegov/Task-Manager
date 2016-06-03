@@ -1,6 +1,9 @@
 package com.pavlochechegov.taskmanager.adapter;
 
 import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,15 +12,23 @@ import android.widget.TextView;
 import com.pavlochechegov.taskmanager.R;
 import com.pavlochechegov.taskmanager.model.Task;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.TimeZone;
 
 public class TaskAdapter extends BaseAdapter {
     private Context mContext;
     private ArrayList<Task> mTaskArrayList;
-
-    public TaskAdapter (Context context, ArrayList<Task> taskArrayList) {
+    private Resources mResources;
+    DateFormat mDFTaskTime, mDFDifferenceTime;
+    public TaskAdapter (Context context, ArrayList<Task> taskArrayList, Resources resources) {
         mContext = context;
         mTaskArrayList = taskArrayList;
+        mResources = resources;
+        mDFTaskTime = new SimpleDateFormat("dd.MM.yyyy HH:mm");
+        mDFDifferenceTime = new SimpleDateFormat("HH:mm:ss");
+        mDFDifferenceTime.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
 
     static class ViewHolder {
@@ -62,10 +73,24 @@ public class TaskAdapter extends BaseAdapter {
 
         }
 
+        convertView.setBackgroundColor(mResources.getColor(task.getTaskColor()));
+
         viewHolder.mTextViewTaskTitle.setText(task.getTaskTitle());
         viewHolder.mTextViewTaskComment.setText(task.getTaskComment());
-        viewHolder.mTextViewTaskTime.setText(task.getTaskStartTime() + task.getTaskEndTime());
+        viewHolder.mTextViewTaskTime.setText(mDFTaskTime.format(task.getTaskStartTime()));
 
+        if(mTaskArrayList.get(position).getTaskStartTime() == 0){
+            viewHolder.mTextViewTaskTime.setVisibility(View.GONE);
+        } else if(mTaskArrayList.get(position).getTaskEndTime() == 0) {
+            viewHolder.mTextViewTaskTime.setVisibility(View.VISIBLE);
+            viewHolder.mTextViewTaskTime.setText(mDFTaskTime.format(task.getTaskStartTime()));
+        } else {
+            viewHolder.mTextViewTaskTime.setVisibility(View.VISIBLE);
+            viewHolder.mTextViewTaskTime.setText(
+                            mDFTaskTime.format(task.getTaskStartTime()) + " - " +
+                            mDFTaskTime.format(task.getTaskEndTime()) + ": " +
+                            mDFDifferenceTime.format(task.getTaskEndTime() - task.getTaskStartTime()));
+        }
         return convertView;
     }
 }

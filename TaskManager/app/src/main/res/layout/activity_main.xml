@@ -14,13 +14,12 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/listViewTask"
-            android:paddingTop="16dp"
             android:layout_above="@+id/btnAddTask"/>
 
     <Button android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/add_task"
-            android:background="@color/colorPrimary"
+            android:background="@drawable/selector_button_save"
             android:textColor="@android:color/white"
             android:id="@+id/btnAddTask" android:layout_alignParentBottom="true" android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true" android:onClick="addTaskToListView"/>

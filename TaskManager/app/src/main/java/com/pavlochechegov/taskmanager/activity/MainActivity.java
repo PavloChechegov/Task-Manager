@@ -3,6 +3,9 @@ package com.pavlochechegov.taskmanager.activity;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -17,7 +20,6 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.TimeZone;
 
 import static com.pavlochechegov.taskmanager.activity.TaskActivity.KEY_TASK_EXTRA;
@@ -42,40 +44,35 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mTaskJSON = new TaskJSON(this, FILENAME);
 
         if (savedInstanceState != null) {
             mTaskArrayList = savedInstanceState.getParcelableArrayList(KEY_SAVE_STATE);
-        } else if(mTaskJSON != null){
-            // loading data(JsonObject ArrayList) from phone
-            try {
-                mTaskArrayList = mTaskJSON.loadTask();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
         } else {
             mTaskArrayList = new ArrayList<>();
         }
         initUI();
+
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelableArrayList(KEY_SAVE_STATE, mTaskArrayList);
-        saveToJSONfile(mTaskArrayList);
+        if(!mTaskArrayList.isEmpty()){
+            saveToJSONFile(mTaskArrayList);
+        }
+
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        if(data != null) {
+        if (data != null) {
             switch (requestCode) {
                 case 1:
                     mTask = data.getParcelableExtra(KEY_TASK_EXTRA);
                     mTaskArrayList.add(0, mTask);
-                    saveToJSONfile(mTaskArrayList);
                     mTaskAdapter.notifyDataSetChanged();
                     break;
 
@@ -83,7 +80,6 @@ public class MainActivity extends AppCompatActivity {
                     mTask = data.getParcelableExtra(KEY_TASK_EXTRA);
                     mIntItemPosition = data.getIntExtra(KEY_ITEM_POSITION, DEFAULT_KEYS_DIALER);
                     mTaskArrayList.set(mIntItemPosition, mTask);
-                    saveToJSONfile(mTaskArrayList);
                     mTaskAdapter.notifyDataSetChanged();
                     break;
 
@@ -91,24 +87,26 @@ public class MainActivity extends AppCompatActivity {
                     break;
             }
         }
-
+        saveToJSONFile(mTaskArrayList);
         initUI();
     }
 
     // TODO: initialize all widget on screen
     private void initUI() {
-
-        if (mTaskJSON == null) {
-            mTaskJSON = new TaskJSON(MainActivity.this, FILENAME);
+        if(mTaskJSON == null){
+            mTaskJSON = new TaskJSON(this, FILENAME);
+        } else {
+            try {
+                mTaskArrayList = mTaskJSON.loadTask();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
 
-        mDFTaskTime = new SimpleDateFormat("dd.MM.yyyy HH:mm");
-        mDFDifferenceTime = new SimpleDateFormat("HH:mm:ss");
-        mDFDifferenceTime.setTimeZone(TimeZone.getTimeZone("GMT"));
-
-
         mTaskListView = (ListView) findViewById(R.id.listViewTask);
-        mTaskAdapter = new TaskAdapter(this, mTaskArrayList);
+        mTaskAdapter = new TaskAdapter(this, mTaskArrayList, getResources());
         mTaskListView.setAdapter(mTaskAdapter);
 
         //change items in ListView
@@ -117,27 +115,27 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Task task = mTaskAdapter.getItem(position);
 
-                if (task.getTaskStartTime().isEmpty()) {
+                if (task.getTaskStartTime() == 0) {
 
                     mTaskTimeStart = System.currentTimeMillis();
-                    task.setTaskStartTime(mDFTaskTime.format(mTaskTimeStart));
-                    Toast.makeText(getApplicationContext(), "Task added", Toast.LENGTH_SHORT).show();
-
+                    task.setTaskStartTime(mTaskTimeStart);
+                    task.setTaskColor(R.color.start_task_color);
+                    mTaskArrayList.set(position, task);
+                    saveToJSONFile(mTaskArrayList);
+                    Toast.makeText(getApplicationContext(), "Task started", Toast.LENGTH_SHORT).show();
                     mTaskAdapter.notifyDataSetChanged();
 
-
-                } else if (task.getTaskEndTime().isEmpty()) {
+                } else if (task.getTaskEndTime() == 0) {
 
                     mTaskTimeEnd = System.currentTimeMillis();
                     mTaskTimeDifference = mTaskTimeEnd - mTaskTimeStart;
-                    task.setTaskEndTime(" - "
-                            + mDFTaskTime.format(System.currentTimeMillis()) + ": "
-                            + mDFDifferenceTime.format(mTaskTimeDifference));
-
+                    task.setTaskEndTime(mTaskTimeEnd);
+                    task.setTaskColor(R.color.finish_task_color);
+                    mTaskArrayList.set(position, task);
+                    saveToJSONFile(mTaskArrayList);
+                    Toast.makeText(getApplicationContext(), "Task finished", Toast.LENGTH_SHORT).show();
                     mTaskAdapter.notifyDataSetChanged();
-
                 }
-
             }
         });
 
@@ -149,7 +147,6 @@ public class MainActivity extends AppCompatActivity {
                 longClickIntent.putExtra(KEY_ITEM_LONG_CLICK, mTaskAdapter.getItem(position));
                 longClickIntent.putExtra(KEY_ITEM_POSITION, position);
                 startActivityForResult(longClickIntent, 2);
-
                 return true;
             }
         });
@@ -162,13 +159,59 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(intent, 1);
     }
 
-    public void saveToJSONfile(ArrayList<Task> tasks){
+    public void saveToJSONFile(ArrayList<Task> taskArrayList) {
         try {
-            mTaskJSON.saveTask(tasks);
+            mTaskJSON.saveTask(taskArrayList);
         } catch (JSONException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true;
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+        if (id == R.id.action_add) {
+            addThreeScreenTasks();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+    public void addThreeScreenTasks() {
+
+        float o = getTotalHeightListView(mTaskListView, mTaskAdapter);
+        float y = mTaskListView.getHeight();
+        int k = (int) ((y / o) - 1) * 3;
+        Log.d("ADD", o + " " + y + " " + k);
+        for (int i = 0; i <= k; i++) {
+            mTaskArrayList.add(0, new Task("Task #" + i, "Comment #" + i, 0, 0, R.color.default_task_color));
+            Log.d("ADD", i + "");
+        }
+        //saveToJSONFile(mTaskArrayList);
+        mTaskAdapter.notifyDataSetChanged();
+    }
+
+
+    private int getTotalHeightListView(ListView lv, TaskAdapter mAdapter) {
+
+        int listViewElementsHeight = 0;
+        for (int i = 0; i < mAdapter.getCount(); i++) {
+            View mView = mAdapter.getView(i, null, lv);
+            mView.measure(
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+            listViewElementsHeight += mView.getMeasuredHeight();
+        }
+        return listViewElementsHeight;
     }
 }

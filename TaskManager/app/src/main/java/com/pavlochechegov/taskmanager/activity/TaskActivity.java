@@ -23,7 +23,6 @@ public class TaskActivity extends AppCompatActivity {
     private Button mButtonTaskCancel, mButtonTaskSave;
     private Task mTask;
     protected int positionOfItem;
-    CoordinatorLayout mCoordinatorLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +37,6 @@ public class TaskActivity extends AppCompatActivity {
             mEditTextTaskTitle.setText(mTask.getTaskTitle());
             mEditTextTaskComment.setText(mTask.getTaskComment());
         }
-
     }
 
     // TODO: initialize all widget on screen
@@ -56,20 +54,16 @@ public class TaskActivity extends AppCompatActivity {
     // TODO: create Task object and send to MainActivity
     public void createTask(View view){
 
-
         if (mEditTextTaskTitle.getText().toString().isEmpty() || mEditTextTaskComment.getText().toString().isEmpty()) {
             Toast.makeText(getApplicationContext(), "You have empty fields", Toast.LENGTH_SHORT).show();
         } else {
             mTask = new Task(mEditTextTaskTitle.getText().toString(),
-                    mEditTextTaskComment.getText().toString(), "", "");
-
+                    mEditTextTaskComment.getText().toString(), 0, 0, R.color.default_task_color);
             Intent intent = new Intent();
             intent.putExtra(KEY_TASK_EXTRA, mTask);
             intent.putExtra(KEY_ITEM_POSITION, positionOfItem);
             setResult(RESULT_OK, intent);
             finish();
         }
-
-
     }
 }

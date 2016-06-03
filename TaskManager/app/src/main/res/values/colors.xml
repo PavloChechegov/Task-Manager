@@ -7,5 +7,7 @@
     <color name="black">#000000</color>
 
     <color name="background_dark">#000000</color>
-
+    <color name="start_task_color">#FFF9C4</color>
+    <color name="finish_task_color">#FFCCBC</color>
+    <color name="default_task_color">#C8E6C9</color>
 </resources>

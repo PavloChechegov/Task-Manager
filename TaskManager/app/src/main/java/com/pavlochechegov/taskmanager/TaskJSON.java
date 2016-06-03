@@ -12,7 +12,7 @@ import java.io.*;
 import java.util.ArrayList;
 
 
-public class TaskJSON implements Serializable {
+public class TaskJSON{
     private Context mContext;
     private String mFileName;
     private ArrayList<Task> mTaskArrayList;
@@ -22,21 +22,19 @@ public class TaskJSON implements Serializable {
         mContext = context;
         mFileName = fileName;
     }
+
     public void saveTask(ArrayList<Task> tasks) throws JSONException, IOException {
-        JSONArray jsonArray = new JSONArray(mTaskArrayList);
+        JSONArray jsonArray = new JSONArray();
+
         for (Task task : tasks) {
             jsonArray.put(task.toJSON());
-            Log.i("JSON_ARRAY","UUUU: " + task.toJSON());
         }
-
 
         Writer writer = null;
         FileOutputStream outputStream;
 
-
         try {
             outputStream = mContext.openFileOutput(mFileName, Context.MODE_PRIVATE);
-            Log.i("TaskJSONSerializer", mFileName);
             writer = new OutputStreamWriter(outputStream);
             writer.write(jsonArray.toString());
         } catch (FileNotFoundException e) {
@@ -61,21 +59,14 @@ public class TaskJSON implements Serializable {
                 jsonString.append(line);
             }
 
-            Log.i("TaskJSONSerializer", "loadTaskMethod");
-
             JSONArray jsonArray = (JSONArray) new JSONTokener(jsonString.toString()).nextValue();
-
 
             for (int i = 0; i < jsonArray.length(); i++) {
 
-                Log.i("Json_array_object", jsonArray.toString());
                 jsonObject = jsonArray.getJSONObject(i);
                 Task task = new Task(jsonObject);
-                Log.i("JSONARRAY_TASK ", jsonObject.toString());
-
                 mTaskArrayList.add(task);
             }
-
 
 
         } catch (FileNotFoundException e) {
@@ -84,7 +75,6 @@ public class TaskJSON implements Serializable {
             if (reader != null) reader.close();
         }
 
-        Log.i("taskArrayList", mTaskArrayList.toString());
         return mTaskArrayList;
     }
 }
