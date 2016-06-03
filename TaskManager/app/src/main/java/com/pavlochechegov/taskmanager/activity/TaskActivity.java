@@ -1,29 +1,44 @@
 package com.pavlochechegov.taskmanager.activity;
 
-import android.content.Context;
 import android.content.Intent;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import com.pavlochechegov.taskmanager.R;
-import com.pavlochechegov.taskmanager.task.Task;
+import com.pavlochechegov.taskmanager.model.Task;
+
+import static com.pavlochechegov.taskmanager.activity.MainActivity.KEY_ITEM_LONG_CLICK;
+import static com.pavlochechegov.taskmanager.activity.MainActivity.KEY_ITEM_POSITION;
 
 public class TaskActivity extends AppCompatActivity {
 
     public static final String KEY_TASK_EXTRA = "key_task_extra";
     private EditText mEditTextTaskTitle, mEditTextTaskComment;
-    //private Button mButtonTaskCancel, mButtonTaskSave;
+    private Button mButtonTaskCancel, mButtonTaskSave;
     private Task mTask;
+    protected int positionOfItem;
+    CoordinatorLayout mCoordinatorLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_task);
         initUI();
+        Intent intent = getIntent();
+
+        if (intent.hasExtra(KEY_ITEM_LONG_CLICK)){
+            mTask = intent.getParcelableExtra(KEY_ITEM_LONG_CLICK);
+            positionOfItem = intent.getIntExtra(KEY_ITEM_POSITION, DEFAULT_KEYS_DIALER);
+            mEditTextTaskTitle.setText(mTask.getTaskTitle());
+            mEditTextTaskComment.setText(mTask.getTaskComment());
+        }
+
     }
 
     // TODO: initialize all widget on screen
@@ -41,17 +56,16 @@ public class TaskActivity extends AppCompatActivity {
     // TODO: create Task object and send to MainActivity
     public void createTask(View view){
 
-        mTask = new Task();
 
-        if (mEditTextTaskTitle.getText().toString().isEmpty()) {
-            Toast.makeText(getApplicationContext(), "Введіть будь ласка назву завдання", Toast.LENGTH_SHORT).show();
-        } else if(mEditTextTaskComment.getText().toString().isEmpty()) {
-            Toast.makeText(getApplicationContext(), "Введіть опис коментар до завдання", Toast.LENGTH_SHORT).show();
+        if (mEditTextTaskTitle.getText().toString().isEmpty() || mEditTextTaskComment.getText().toString().isEmpty()) {
+            Toast.makeText(getApplicationContext(), "You have empty fields", Toast.LENGTH_SHORT).show();
         } else {
-            mTask.setTaskTitle(mEditTextTaskTitle.getText().toString());
-            mTask.setTaskComment(mEditTextTaskComment.getText().toString());
+            mTask = new Task(mEditTextTaskTitle.getText().toString(),
+                    mEditTextTaskComment.getText().toString(), "", "");
+
             Intent intent = new Intent();
             intent.putExtra(KEY_TASK_EXTRA, mTask);
+            intent.putExtra(KEY_ITEM_POSITION, positionOfItem);
             setResult(RESULT_OK, intent);
             finish();
         }

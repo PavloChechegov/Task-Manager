@@ -1,8 +1,9 @@
 <resources>
     <string name="app_name">Task Manager</string>
-    <string name="add_task">Додати</string>
-    <string name="button_cancel">Вихід</string>
-    <string name="button_save_task">Зберегти</string>
-    <string name="comment_task">Коментар</string>
-    <string name="enter_task">Введіть назву</string>
+    <string name="add_task">Add task</string>
+    <string name="button_cancel">Exit</string>
+    <string name="button_save_task">Save</string>
+    <string name="comment_task">Comment</string>
+    <string name="enter_task">Title</string>
+    <string name="add_new_task">Add new task</string>
 </resources>

@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 import com.pavlochechegov.taskmanager.R;
-import com.pavlochechegov.taskmanager.task.Task;
+import com.pavlochechegov.taskmanager.model.Task;
 
 import java.util.ArrayList;
 
@@ -21,7 +21,7 @@ public class TaskAdapter extends BaseAdapter {
     }
 
     static class ViewHolder {
-        TextView mTextViewTaskTitle, mTextViewTaskComment;
+        TextView mTextViewTaskTitle, mTextViewTaskComment, mTextViewTaskTime;
     }
 
     @Override
@@ -52,6 +52,7 @@ public class TaskAdapter extends BaseAdapter {
             viewHolder = new ViewHolder();
             viewHolder.mTextViewTaskTitle = (TextView) convertView.findViewById(R.id.tvTaskTitle);
             viewHolder.mTextViewTaskComment = (TextView) convertView.findViewById(R.id.tvTaskComment);
+            viewHolder.mTextViewTaskTime = (TextView) convertView.findViewById(R.id.tvTaskTime);
 
             convertView.setTag(viewHolder);
 
@@ -63,6 +64,7 @@ public class TaskAdapter extends BaseAdapter {
 
         viewHolder.mTextViewTaskTitle.setText(task.getTaskTitle());
         viewHolder.mTextViewTaskComment.setText(task.getTaskComment());
+        viewHolder.mTextViewTaskTime.setText(task.getTaskStartTime() + task.getTaskEndTime());
 
         return convertView;
     }

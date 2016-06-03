@@ -42,13 +42,13 @@
                 android:text="@string/button_cancel"
                 android:onClick="cancelTask"
                 android:textColor="@android:color/white"
-                android:background="@android:color/holo_blue_dark"
+                android:background="@drawable/selector_button_cancel"
                 android:layout_row="0" android:layout_column="0"/>
 
         <Button android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/btnSaveTask"
-                android:background="@color/colorPrimary"
+                android:background="@drawable/selector_button_save"
                 android:textColor="@android:color/white"
                 android:text="@string/button_save_task"
                 android:onClick="createTask"
