@@ -20,7 +20,7 @@ public class Task implements Parcelable{
     private long mTaskStartTime;
     private long mTaskEndTime;
     private int mTaskColor;
-    private boolean isSelected;
+
     public Task() {}
 
     public Task(String taskTitle, String taskComment, long taskStartTime, long taskEndTime, int color) {
@@ -31,13 +31,6 @@ public class Task implements Parcelable{
         mTaskColor = color;
     }
 
-    public boolean isSelected() {
-        return isSelected;
-    }
-
-    public void setSelected(boolean isSelected) {
-        this.isSelected = isSelected;
-    }
     //getter and setter
     public int getTaskColor() {
         return mTaskColor;

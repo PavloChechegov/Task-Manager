@@ -1,9 +1,9 @@
 package com.pavlochechegov.taskmanager.activity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -11,16 +11,12 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 import com.pavlochechegov.taskmanager.R;
-import com.pavlochechegov.taskmanager.TaskJSON;
+import com.pavlochechegov.taskmanager.json.TaskJSON;
 import com.pavlochechegov.taskmanager.model.Task;
 import com.pavlochechegov.taskmanager.adapter.TaskAdapter;
-import org.json.JSONException;
+import com.pavlochechegov.taskmanager.utils.SaveTask;
 
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.TimeZone;
 
 import static com.pavlochechegov.taskmanager.activity.TaskActivity.KEY_TASK_EXTRA;
 
@@ -30,21 +26,22 @@ public class MainActivity extends AppCompatActivity {
     public static final String KEY_SAVE_STATE = "save_instance_state";
     public static final String KEY_ITEM_LONG_CLICK = "long_click_item";
     public static final String KEY_ITEM_POSITION = "item_position";
+    private static final String KEY_PREFERENCES = "key_preferences";
     private ListView mTaskListView;
     private ArrayList<Task> mTaskArrayList;
     private TaskAdapter mTaskAdapter;
     private Task mTask;
-    private long mTaskTimeStart, mTaskTimeEnd, mTaskTimeDifference;
+    private long mTaskTimeStart, mTaskTimeEnd;
     private int mIntItemPosition;
-    private TaskJSON mTaskJSON;
-    DateFormat mDFTaskTime, mDFDifferenceTime;
 
+    SharedPreferences.Editor mEditor;
+    SharedPreferences mSharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mTaskJSON = new TaskJSON(this, FILENAME);
+        //mTaskJSON = new TaskJSON(this, FILENAME);
 
         if (savedInstanceState != null) {
             mTaskArrayList = savedInstanceState.getParcelableArrayList(KEY_SAVE_STATE);
@@ -52,7 +49,6 @@ public class MainActivity extends AppCompatActivity {
             mTaskArrayList = new ArrayList<>();
         }
         initUI();
-
     }
 
     @Override
@@ -60,9 +56,8 @@ public class MainActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
         outState.putParcelableArrayList(KEY_SAVE_STATE, mTaskArrayList);
         if(!mTaskArrayList.isEmpty()){
-            saveToJSONFile(mTaskArrayList);
+            saveToSharedPreferences(mTaskArrayList);
         }
-
     }
 
     @Override
@@ -87,23 +82,15 @@ public class MainActivity extends AppCompatActivity {
                     break;
             }
         }
-        saveToJSONFile(mTaskArrayList);
+        saveToSharedPreferences(mTaskArrayList);
         initUI();
     }
 
     // TODO: initialize all widget on screen
     private void initUI() {
-        if(mTaskJSON == null){
-            mTaskJSON = new TaskJSON(this, FILENAME);
-        } else {
-            try {
-                mTaskArrayList = mTaskJSON.loadTask();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
+        mSharedPreferences = getSharedPreferences(KEY_PREFERENCES, MODE_PRIVATE);
+        mEditor = mSharedPreferences.edit();
+        mTaskArrayList = SaveTask.loadData(mSharedPreferences);
 
         mTaskListView = (ListView) findViewById(R.id.listViewTask);
         mTaskAdapter = new TaskAdapter(this, mTaskArrayList, getResources());
@@ -121,18 +108,17 @@ public class MainActivity extends AppCompatActivity {
                     task.setTaskStartTime(mTaskTimeStart);
                     task.setTaskColor(R.color.start_task_color);
                     mTaskArrayList.set(position, task);
-                    saveToJSONFile(mTaskArrayList);
+                    saveToSharedPreferences(mTaskArrayList);
                     Toast.makeText(getApplicationContext(), "Task started", Toast.LENGTH_SHORT).show();
                     mTaskAdapter.notifyDataSetChanged();
 
                 } else if (task.getTaskEndTime() == 0) {
 
                     mTaskTimeEnd = System.currentTimeMillis();
-                    mTaskTimeDifference = mTaskTimeEnd - mTaskTimeStart;
                     task.setTaskEndTime(mTaskTimeEnd);
                     task.setTaskColor(R.color.finish_task_color);
                     mTaskArrayList.set(position, task);
-                    saveToJSONFile(mTaskArrayList);
+                    saveToSharedPreferences(mTaskArrayList);
                     Toast.makeText(getApplicationContext(), "Task finished", Toast.LENGTH_SHORT).show();
                     mTaskAdapter.notifyDataSetChanged();
                 }
@@ -159,59 +145,56 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(intent, 1);
     }
 
-    public void saveToJSONFile(ArrayList<Task> taskArrayList) {
-        try {
-            mTaskJSON.saveTask(taskArrayList);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void saveToSharedPreferences(ArrayList<Task> taskArrayList) {
+        SaveTask.saveData(MainActivity.this,
+                taskArrayList,
+                mSharedPreferences,
+                KEY_PREFERENCES,
+                mEditor);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu, menu);
         return true;
     }
+
+    //add button on toolbar
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_add) {
+            if (mTaskArrayList.isEmpty()) {
+                mTaskArrayList.add(0, new Task("Task #" + 0, "Comment #" + 0, 0, 0, R.color.default_task_color));
+                addThreeScreenTasks();
+            } else {
+                addThreeScreenTasks();
+            }
             addThreeScreenTasks();
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
-    public void addThreeScreenTasks() {
 
-        float o = getTotalHeightListView(mTaskListView, mTaskAdapter);
+    //add 3 screen item in listView
+    public void addThreeScreenTasks() {
+        float o = getHeightListViewItem(mTaskListView, mTaskAdapter);
         float y = mTaskListView.getHeight();
-        int k = (int) ((y / o) - 1) * 3;
-        Log.d("ADD", o + " " + y + " " + k);
-        for (int i = 0; i <= k; i++) {
+        int k = ((int) (y / o))  * 3 - 1;
+        for (int i = 1; i < k; i++) {
             mTaskArrayList.add(0, new Task("Task #" + i, "Comment #" + i, 0, 0, R.color.default_task_color));
-            Log.d("ADD", i + "");
         }
-        //saveToJSONFile(mTaskArrayList);
+        saveToSharedPreferences(mTaskArrayList);
         mTaskAdapter.notifyDataSetChanged();
     }
 
-
-    private int getTotalHeightListView(ListView lv, TaskAdapter mAdapter) {
-
-        int listViewElementsHeight = 0;
-        for (int i = 0; i < mAdapter.getCount(); i++) {
-            View mView = mAdapter.getView(i, null, lv);
-            mView.measure(
-                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-            listViewElementsHeight += mView.getMeasuredHeight();
-        }
+    //total height of 1 element of listvew
+    private int getHeightListViewItem(ListView listView, TaskAdapter taskAdapter) {
+        View mView = taskAdapter.getView(0, null, listView);
+        mView.measure(
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+        int listViewElementsHeight = mView.getMeasuredHeight();;
         return listViewElementsHeight;
     }
 }

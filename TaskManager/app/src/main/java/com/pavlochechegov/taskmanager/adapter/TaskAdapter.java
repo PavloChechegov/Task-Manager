@@ -21,7 +21,8 @@ public class TaskAdapter extends BaseAdapter {
     private Context mContext;
     private ArrayList<Task> mTaskArrayList;
     private Resources mResources;
-    DateFormat mDFTaskTime, mDFDifferenceTime;
+    private DateFormat mDFTaskTime, mDFDifferenceTime;
+
     public TaskAdapter (Context context, ArrayList<Task> taskArrayList, Resources resources) {
         mContext = context;
         mTaskArrayList = taskArrayList;
@@ -68,9 +69,7 @@ public class TaskAdapter extends BaseAdapter {
             convertView.setTag(viewHolder);
 
         } else {
-
             viewHolder = (ViewHolder) convertView.getTag();
-
         }
 
         convertView.setBackgroundColor(mResources.getColor(task.getTaskColor()));
@@ -79,9 +78,10 @@ public class TaskAdapter extends BaseAdapter {
         viewHolder.mTextViewTaskComment.setText(task.getTaskComment());
         viewHolder.mTextViewTaskTime.setText(mDFTaskTime.format(task.getTaskStartTime()));
 
-        if(mTaskArrayList.get(position).getTaskStartTime() == 0){
+        // if timeStart of Task doesn't exist widget TextView is invisible
+        if (mTaskArrayList.get(position).getTaskStartTime() == 0){
             viewHolder.mTextViewTaskTime.setVisibility(View.GONE);
-        } else if(mTaskArrayList.get(position).getTaskEndTime() == 0) {
+        } else if (mTaskArrayList.get(position).getTaskEndTime() == 0) {
             viewHolder.mTextViewTaskTime.setVisibility(View.VISIBLE);
             viewHolder.mTextViewTaskTime.setText(mDFTaskTime.format(task.getTaskStartTime()));
         } else {
