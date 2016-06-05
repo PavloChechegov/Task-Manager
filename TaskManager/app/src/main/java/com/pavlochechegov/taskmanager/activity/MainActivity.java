@@ -1,7 +1,6 @@
 package com.pavlochechegov.taskmanager.activity;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -11,9 +10,8 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 import com.pavlochechegov.taskmanager.R;
-import com.pavlochechegov.taskmanager.json.TaskJSON;
 import com.pavlochechegov.taskmanager.model.Task;
-import com.pavlochechegov.taskmanager.adapter.TaskAdapter;
+import com.pavlochechegov.taskmanager.adapter.TaskBaseAdapter;
 import com.pavlochechegov.taskmanager.utils.SaveTask;
 
 import java.util.ArrayList;
@@ -22,41 +20,37 @@ import static com.pavlochechegov.taskmanager.activity.TaskActivity.KEY_TASK_EXTR
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final String FILENAME = "tasks.json";
     public static final String KEY_SAVE_STATE = "save_instance_state";
     public static final String KEY_ITEM_LONG_CLICK = "long_click_item";
     public static final String KEY_ITEM_POSITION = "item_position";
-    private static final String KEY_PREFERENCES = "key_preferences";
     private ListView mTaskListView;
     private ArrayList<Task> mTaskArrayList;
-    private TaskAdapter mTaskAdapter;
+    private TaskBaseAdapter mTaskBaseAdapter;
     private Task mTask;
     private long mTaskTimeStart, mTaskTimeEnd;
     private int mIntItemPosition;
-
-    SharedPreferences.Editor mEditor;
-    SharedPreferences mSharedPreferences;
+    private SaveTask mSaveTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //mTaskJSON = new TaskJSON(this, FILENAME);
-
+        mSaveTask = new SaveTask(MainActivity.this);
         if (savedInstanceState != null) {
             mTaskArrayList = savedInstanceState.getParcelableArrayList(KEY_SAVE_STATE);
         } else {
-            mTaskArrayList = new ArrayList<>();
+            mTaskArrayList = mSaveTask.loadData();
         }
         initUI();
+
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelableArrayList(KEY_SAVE_STATE, mTaskArrayList);
-        if(!mTaskArrayList.isEmpty()){
-            saveToSharedPreferences(mTaskArrayList);
+        if (!mTaskArrayList.isEmpty()) {
+            mSaveTask.saveData(mTaskArrayList);
         }
     }
 
@@ -68,39 +62,31 @@ public class MainActivity extends AppCompatActivity {
                 case 1:
                     mTask = data.getParcelableExtra(KEY_TASK_EXTRA);
                     mTaskArrayList.add(0, mTask);
-                    mTaskAdapter.notifyDataSetChanged();
                     break;
-
                 case 2:
                     mTask = data.getParcelableExtra(KEY_TASK_EXTRA);
                     mIntItemPosition = data.getIntExtra(KEY_ITEM_POSITION, DEFAULT_KEYS_DIALER);
                     mTaskArrayList.set(mIntItemPosition, mTask);
-                    mTaskAdapter.notifyDataSetChanged();
                     break;
-
                 default:
                     break;
             }
         }
-        saveToSharedPreferences(mTaskArrayList);
-        initUI();
+        saveArrayList(mTaskArrayList);
     }
+
 
     // TODO: initialize all widget on screen
     private void initUI() {
-        mSharedPreferences = getSharedPreferences(KEY_PREFERENCES, MODE_PRIVATE);
-        mEditor = mSharedPreferences.edit();
-        mTaskArrayList = SaveTask.loadData(mSharedPreferences);
-
         mTaskListView = (ListView) findViewById(R.id.listViewTask);
-        mTaskAdapter = new TaskAdapter(this, mTaskArrayList, getResources());
-        mTaskListView.setAdapter(mTaskAdapter);
+        mTaskBaseAdapter = new TaskBaseAdapter(this, mTaskArrayList, getResources());
+        mTaskListView.setAdapter(mTaskBaseAdapter);
 
         //change items in ListView
         mTaskListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Task task = mTaskAdapter.getItem(position);
+                Task task = mTaskBaseAdapter.getItem(position);
 
                 if (task.getTaskStartTime() == 0) {
 
@@ -108,9 +94,7 @@ public class MainActivity extends AppCompatActivity {
                     task.setTaskStartTime(mTaskTimeStart);
                     task.setTaskColor(R.color.start_task_color);
                     mTaskArrayList.set(position, task);
-                    saveToSharedPreferences(mTaskArrayList);
                     Toast.makeText(getApplicationContext(), "Task started", Toast.LENGTH_SHORT).show();
-                    mTaskAdapter.notifyDataSetChanged();
 
                 } else if (task.getTaskEndTime() == 0) {
 
@@ -118,24 +102,27 @@ public class MainActivity extends AppCompatActivity {
                     task.setTaskEndTime(mTaskTimeEnd);
                     task.setTaskColor(R.color.finish_task_color);
                     mTaskArrayList.set(position, task);
-                    saveToSharedPreferences(mTaskArrayList);
                     Toast.makeText(getApplicationContext(), "Task finished", Toast.LENGTH_SHORT).show();
-                    mTaskAdapter.notifyDataSetChanged();
                 }
+                saveArrayList(mTaskArrayList);
             }
         });
 
         mTaskListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-
                 Intent longClickIntent = new Intent(MainActivity.this, TaskActivity.class);
-                longClickIntent.putExtra(KEY_ITEM_LONG_CLICK, mTaskAdapter.getItem(position));
+                longClickIntent.putExtra(KEY_ITEM_LONG_CLICK, mTaskBaseAdapter.getItem(position));
                 longClickIntent.putExtra(KEY_ITEM_POSITION, position);
                 startActivityForResult(longClickIntent, 2);
                 return true;
             }
         });
+    }
+
+    public void saveArrayList(ArrayList<Task> taskArrayList) {
+        mSaveTask.saveData(taskArrayList);
+        mTaskBaseAdapter.notifyDataSetChanged();
     }
 
 
@@ -145,13 +132,6 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(intent, 1);
     }
 
-    public void saveToSharedPreferences(ArrayList<Task> taskArrayList) {
-        SaveTask.saveData(MainActivity.this,
-                taskArrayList,
-                mSharedPreferences,
-                KEY_PREFERENCES,
-                mEditor);
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -162,39 +142,44 @@ public class MainActivity extends AppCompatActivity {
     //add button on toolbar
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_add) {
-            if (mTaskArrayList.isEmpty()) {
-                mTaskArrayList.add(0, new Task("Task #" + 0, "Comment #" + 0, 0, 0, R.color.default_task_color));
+        switch (item.getItemId()) {
+            case R.id.action_add:
+                if (mTaskArrayList.isEmpty()) {
+                    mTaskArrayList.add(0, new Task("Task #" + 0, "Comment #" + 0, 0, 0, R.color.default_task_color));
+                    addThreeScreenTasks();
+                } else {
+                    addThreeScreenTasks();
+                }
                 addThreeScreenTasks();
-            } else {
-                addThreeScreenTasks();
-            }
-            addThreeScreenTasks();
-            return true;
+                return true;
+            case R.id.action_delete_elements:
+                mTaskArrayList.clear();
+                mSaveTask.clearData();
+                mTaskBaseAdapter.notifyDataSetChanged();
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
     //add 3 screen item in listView
     public void addThreeScreenTasks() {
-        float o = getHeightListViewItem(mTaskListView, mTaskAdapter);
+        float o = getHeightListViewItem(mTaskListView, mTaskBaseAdapter);
         float y = mTaskListView.getHeight();
-        int k = ((int) (y / o))  * 3 - 1;
+        int k = ((int) (y / o)) * 3;
         for (int i = 1; i < k; i++) {
             mTaskArrayList.add(0, new Task("Task #" + i, "Comment #" + i, 0, 0, R.color.default_task_color));
         }
-        saveToSharedPreferences(mTaskArrayList);
-        mTaskAdapter.notifyDataSetChanged();
+        saveArrayList(mTaskArrayList);
     }
 
     //total height of 1 element of listvew
-    private int getHeightListViewItem(ListView listView, TaskAdapter taskAdapter) {
-        View mView = taskAdapter.getView(0, null, listView);
+    private int getHeightListViewItem(ListView listView, TaskBaseAdapter taskBaseAdapter) {
+        View mView = taskBaseAdapter.getView(0, null, listView);
         mView.measure(
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-        int listViewElementsHeight = mView.getMeasuredHeight();;
+        int listViewElementsHeight = mView.getMeasuredHeight();
+        ;
         return listViewElementsHeight;
     }
 }

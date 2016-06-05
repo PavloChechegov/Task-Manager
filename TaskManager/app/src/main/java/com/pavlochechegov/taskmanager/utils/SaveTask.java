@@ -2,6 +2,7 @@ package com.pavlochechegov.taskmanager.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 import com.pavlochechegov.taskmanager.json.TaskJSON;
 import com.pavlochechegov.taskmanager.model.Task;
 import org.json.JSONException;
@@ -10,19 +11,19 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class SaveTask {
-    private ArrayList<Task> mTaskArrayList;
     public static final String KEY_DATA_SAVE = "key_data_save";
+    private static final String APP_PREFERENCES = "app_preferences";
+    private SharedPreferences preferences;
+    private SharedPreferences.Editor editor;
+
+    public SaveTask(Context context) {
+        preferences = context.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
+        editor = preferences.edit();
+    }
 
     //save data
-    public static void saveData(Context context,
-                                   ArrayList<Task> taskArrayList,
-                                   SharedPreferences preferences,
-                                   String keySetting,
-                                   SharedPreferences.Editor editor) {
-        preferences = context.getSharedPreferences(keySetting, Context.MODE_PRIVATE);
+    public void saveData(ArrayList<Task> taskArrayList) {
         TaskJSON mTaskJSON = new TaskJSON();
-        editor = preferences.edit();
-
         try {
             editor.putString(KEY_DATA_SAVE, mTaskJSON.saveTask(taskArrayList));
             editor.apply();
@@ -32,7 +33,7 @@ public class SaveTask {
     }
 
     //loading data
-    public static ArrayList<Task> loadData(SharedPreferences preferences){
+    public ArrayList<Task> loadData(){
         ArrayList<Task> taskArrayList = new ArrayList<>();
         if (preferences.contains(KEY_DATA_SAVE)){
             TaskJSON taskJSON = new TaskJSON();
@@ -45,7 +46,7 @@ public class SaveTask {
         return taskArrayList;
     }
 
-    public static void clearData(SharedPreferences.Editor editor) {
+    public void clearData() {
         editor.remove(KEY_DATA_SAVE);
         editor.clear();
         editor.commit();

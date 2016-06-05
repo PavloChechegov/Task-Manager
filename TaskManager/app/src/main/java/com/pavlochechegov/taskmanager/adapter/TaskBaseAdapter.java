@@ -17,13 +17,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.TimeZone;
 
-public class TaskAdapter extends BaseAdapter {
+public class TaskBaseAdapter extends BaseAdapter {
     private Context mContext;
     private ArrayList<Task> mTaskArrayList;
     private Resources mResources;
     private DateFormat mDFTaskTime, mDFDifferenceTime;
 
-    public TaskAdapter (Context context, ArrayList<Task> taskArrayList, Resources resources) {
+    public TaskBaseAdapter(Context context, ArrayList<Task> taskArrayList, Resources resources) {
         mContext = context;
         mTaskArrayList = taskArrayList;
         mResources = resources;
