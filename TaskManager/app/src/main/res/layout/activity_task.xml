@@ -15,7 +15,7 @@
               android:id="@+id/etTaskTitle"
               android:singleLine="true"
               android:textSize="@dimen/text_size_title"
-              android:hint="@string/enter_task"/>
+              android:hint="@string/enter_task" android:inputType="textCapSentences"/>
 
     <EditText android:layout_width="match_parent"
               android:layout_height="wrap_content"
@@ -23,7 +23,7 @@
               android:layout_below="@+id/etTaskTitle"
               android:id="@+id/etTaskComment"
               android:textSize="@dimen/text_size_description"
-              android:hint="@string/comment_task"/>
+              android:hint="@string/comment_task" android:inputType="textCapSentences"/>
 
     <LinearLayout
             android:layout_width="match_parent"

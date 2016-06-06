@@ -1,8 +1,11 @@
 package com.pavlochechegov.taskmanager.activity;
 
 import android.content.Intent;
+import android.os.Handler;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -35,11 +38,18 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         mSaveTask = new SaveTask(MainActivity.this);
         if (savedInstanceState != null) {
             mTaskArrayList = savedInstanceState.getParcelableArrayList(KEY_SAVE_STATE);
         } else {
-            mTaskArrayList = mSaveTask.loadData();
+//            new Handler().post(new Runnable() {
+//                @Override
+//                public void run() {
+                    mTaskArrayList = mSaveTask.loadData();
+//                }
+//            });
+
         }
         initUI();
 
@@ -94,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
                     task.setTaskStartTime(mTaskTimeStart);
                     task.setTaskColor(R.color.start_task_color);
                     mTaskArrayList.set(position, task);
-                    Toast.makeText(getApplicationContext(), "Task started", Toast.LENGTH_SHORT).show();
+                    Snackbar.make(view, "Task started", Snackbar.LENGTH_SHORT).show();
 
                 } else if (task.getTaskEndTime() == 0) {
 
@@ -102,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
                     task.setTaskEndTime(mTaskTimeEnd);
                     task.setTaskColor(R.color.finish_task_color);
                     mTaskArrayList.set(position, task);
-                    Toast.makeText(getApplicationContext(), "Task finished", Toast.LENGTH_SHORT).show();
+                    Snackbar.make(view, "Task finished", Snackbar.LENGTH_SHORT).show();
                 }
                 saveArrayList(mTaskArrayList);
             }
@@ -150,7 +160,6 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     addThreeScreenTasks();
                 }
-                addThreeScreenTasks();
                 return true;
             case R.id.action_delete_elements:
                 mTaskArrayList.clear();
@@ -166,7 +175,8 @@ public class MainActivity extends AppCompatActivity {
         float o = getHeightListViewItem(mTaskListView, mTaskBaseAdapter);
         float y = mTaskListView.getHeight();
         int k = ((int) (y / o)) * 3;
-        for (int i = 1; i < k; i++) {
+        Log.i("AddThreeScreenTasks", o + " " + y + " " + k);
+        for (int i = 1; i <= k; i++) {
             mTaskArrayList.add(0, new Task("Task #" + i, "Comment #" + i, 0, 0, R.color.default_task_color));
         }
         saveArrayList(mTaskArrayList);
