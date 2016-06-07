@@ -5,6 +5,7 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -23,11 +24,13 @@ public class TaskActivity extends AppCompatActivity {
     private Button mButtonTaskCancel, mButtonTaskSave;
     private Task mTask;
     protected int positionOfItem;
-
+    private CoordinatorLayout mCoordinatorLayout;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_task);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         initUI();
         Intent intent = getIntent();
 
@@ -41,9 +44,10 @@ public class TaskActivity extends AppCompatActivity {
 
     // TODO: initialize all widget on screen
     private void initUI() {
+        mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.CoordLayoutActivityTask);
         mEditTextTaskTitle = (EditText) findViewById(R.id.etTaskTitle);
         mEditTextTaskComment = (EditText) findViewById(R.id.etTaskComment);
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
     }
 
     // TODO: exit from TaskActivity and return to MainActivity without saving Task object
@@ -55,7 +59,7 @@ public class TaskActivity extends AppCompatActivity {
     public void createTask(View view){
 
         if (mEditTextTaskTitle.getText().toString().isEmpty() || mEditTextTaskComment.getText().toString().isEmpty()) {
-            Toast.makeText(getApplicationContext(), "You have empty fields", Toast.LENGTH_SHORT).show();
+            Snackbar.make(mCoordinatorLayout, "You have empty fields", Snackbar.LENGTH_SHORT).show();
         } else {
             mTask = new Task(mEditTextTaskTitle.getText().toString(),
                     mEditTextTaskComment.getText().toString(), 0, 0, R.color.default_task_color);

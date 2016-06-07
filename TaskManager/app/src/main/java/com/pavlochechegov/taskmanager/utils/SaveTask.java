@@ -46,6 +46,7 @@ public class SaveTask {
         return taskArrayList;
     }
 
+    //delete SharedPreferences file
     public void clearData() {
         editor.remove(KEY_DATA_SAVE);
         editor.clear();
