@@ -1,19 +1,16 @@
 package com.pavlochechegov.taskmanager.activity;
 
 import android.content.Intent;
-import android.os.Handler;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
 import com.pavlochechegov.taskmanager.R;
 import com.pavlochechegov.taskmanager.model.Task;
 import com.pavlochechegov.taskmanager.adapter.TaskBaseAdapter;
@@ -40,8 +37,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+
         mSaveTask = new SaveTask(MainActivity.this);
         if (savedInstanceState != null) {
             mTaskArrayList = savedInstanceState.getParcelableArrayList(KEY_SAVE_STATE);
@@ -91,6 +87,8 @@ public class MainActivity extends AppCompatActivity {
 
     // TODO: initialize all widget on screen
     private void initUI() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
         mTaskListView = (ListView) findViewById(R.id.listViewTask);
         mTaskBaseAdapter = new TaskBaseAdapter(this, mTaskArrayList, getResources());
@@ -108,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
                     task.setTaskStartTime(mTaskTimeStart);
                     task.setTaskColor(R.color.start_task_color);
                     mTaskArrayList.set(position, task);
-                    Snackbar.make(view, "Task started", Snackbar.LENGTH_SHORT).show();
+                    Snackbar.make(view, R.string.task_started, Snackbar.LENGTH_SHORT).show();
 
                 } else if (task.getTaskEndTime() == 0) {
 
@@ -116,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
                     task.setTaskEndTime(mTaskTimeEnd);
                     task.setTaskColor(R.color.finish_task_color);
                     mTaskArrayList.set(position, task);
-                    Snackbar.make(view, "Task finished", Snackbar.LENGTH_SHORT).show();
+                    Snackbar.make(view, R.string.task_finished, Snackbar.LENGTH_SHORT).show();
                 }
                 saveArrayList(mTaskArrayList);
             }
@@ -158,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_add:
-                mTaskArrayList.add(0, new Task("Task #" + 1, "Comment #" + 1, 0, 0, R.color.default_task_color));
+                mTaskArrayList.add(0, new Task(getString(R.string.task) + 1, getString(R.string.comment) + 1, 0, 0, R.color.default_task_color));
                 addThreeScreenTasks();
                 return true;
             case R.id.action_delete_elements:
@@ -176,9 +174,9 @@ public class MainActivity extends AppCompatActivity {
         float y = mTaskListView.getHeight();
         int k = ((int) (y / o)) * 3;
         for (int i = 2; i <= k; i++) {
-            mTaskArrayList.add(0, new Task("Task #" + i, "Comment #" + i, 0, 0, R.color.default_task_color));
+            mTaskArrayList.add(0, new Task(getString(R.string.task) + i, getString(R.string.comment) + i, 0, 0, R.color.default_task_color));
         }
-        Snackbar.make(coordinatorLayout, "New " + k + " tasks were added", Snackbar.LENGTH_SHORT).show();
+        Snackbar.make(coordinatorLayout, R.string.new_task_added, Snackbar.LENGTH_SHORT).show();
         saveArrayList(mTaskArrayList);
     }
 

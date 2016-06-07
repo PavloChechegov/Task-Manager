@@ -7,4 +7,10 @@
     <string name="enter_task">Title</string>
     <string name="create_new_task">Create task</string>
     <string name="action_add">add to listView</string>
+    <string name="task_started">Task started</string>
+    <string name="task_finished">Task finished</string>
+    <string name="empty_fields">You have empty fields</string>
+    <string name="task">Task #</string>
+    <string name="comment">Comment #</string>
+    <string name="new_task_added">New tasks were added</string>
 </resources>

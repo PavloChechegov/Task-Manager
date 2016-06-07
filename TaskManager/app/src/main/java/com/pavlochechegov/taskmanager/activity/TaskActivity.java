@@ -29,11 +29,10 @@ public class TaskActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_task);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        initUI();
-        Intent intent = getIntent();
 
+        initUI();
+
+        Intent intent = getIntent();
         if (intent.hasExtra(KEY_ITEM_LONG_CLICK)){
             mTask = intent.getParcelableExtra(KEY_ITEM_LONG_CLICK);
             positionOfItem = intent.getIntExtra(KEY_ITEM_POSITION, DEFAULT_KEYS_DIALER);
@@ -44,6 +43,8 @@ public class TaskActivity extends AppCompatActivity {
 
     // TODO: initialize all widget on screen
     private void initUI() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.CoordLayoutActivityTask);
         mEditTextTaskTitle = (EditText) findViewById(R.id.etTaskTitle);
         mEditTextTaskComment = (EditText) findViewById(R.id.etTaskComment);
@@ -59,7 +60,7 @@ public class TaskActivity extends AppCompatActivity {
     public void createTask(View view){
 
         if (mEditTextTaskTitle.getText().toString().isEmpty() || mEditTextTaskComment.getText().toString().isEmpty()) {
-            Snackbar.make(mCoordinatorLayout, "You have empty fields", Snackbar.LENGTH_SHORT).show();
+            Snackbar.make(mCoordinatorLayout, R.string.empty_fields, Snackbar.LENGTH_SHORT).show();
         } else {
             mTask = new Task(mEditTextTaskTitle.getText().toString(),
                     mEditTextTaskComment.getText().toString(), 0, 0, R.color.default_task_color);

@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Менеджер заданий</string>
+    <string name="add_task">Добавить</string>
+    <string name="button_cancel">Выйти</string>
+    <string name="button_save_task">Сохранить</string>
+    <string name="comment_task">Коментар</string>
+    <string name="enter_task">Название</string>
+    <string name="create_new_task">Создать задание</string>
+    <string name="action_add">Добавить к списку</string>
+    <string name="task_started">Задание начато</string>
+    <string name="task_finished">Задание окончено</string>
+    <string name="empty_fields">У вас есть незаполненые поля</string>
+    <string name="task">Задание #</string>
+    <string name="comment">Коментар #</string>
+    <string name="new_task_added">Было добавлено новые задания</string>
+</resources>
