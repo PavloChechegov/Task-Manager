@@ -1,6 +1,7 @@
 package com.pavlochechegov.taskmanager.activity;
 
 import android.content.Intent;
+import android.os.Handler;
 import android.support.design.widget.CoordinatorLayout;
 
 import android.support.design.widget.FloatingActionButton;
@@ -45,16 +46,9 @@ public class MainActivity extends AppCompatActivity {
         if (savedInstanceState != null) {
             mTaskArrayList = savedInstanceState.getParcelableArrayList(KEY_SAVE_STATE);
         } else {
-//            new Handler().post(new Runnable() {
-//                @Override
-//                public void run() {
-            mTaskArrayList = mSaveTask.loadData();
-//                }
-//            });
-
+            mTaskArrayList = new ArrayList<>();
         }
         initUI();
-
     }
 
     @Override
@@ -95,8 +89,15 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fabAddTask);
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
-        mTaskBaseAdapter = new TaskBaseAdapter(this, mTaskArrayList, getResources());
-        mTaskListView.setAdapter(mTaskBaseAdapter);
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mTaskArrayList = mSaveTask.loadData();
+                mTaskBaseAdapter = new TaskBaseAdapter(getBaseContext(), mTaskArrayList);
+                mTaskListView.setAdapter(mTaskBaseAdapter);
+            }
+        }, 500);
 
         //change items in ListView
         mTaskListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -119,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
                     task.setTaskColor(R.color.finish_task_color);
                     mTaskArrayList.set(position, task);
                     Snackbar.make(view, R.string.task_finished, Snackbar.LENGTH_LONG)
+                            .setActionTextColor(getResources().getColor(R.color.start_task_color))
                             .setAction(R.string.undo, new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
