@@ -27,7 +27,7 @@
             style="@style/Widget.Design.FloatingActionButton"
             app:layout_anchor="@id/listViewTask"
             android:layout_margin="@dimen/button_padding"
-            app:layout_anchorGravity="bottom|end"
+            app:layout_anchorGravity="bottom|right|end"
             android:onClick="addTaskToListView"/>
 
 </android.support.design.widget.CoordinatorLayout>

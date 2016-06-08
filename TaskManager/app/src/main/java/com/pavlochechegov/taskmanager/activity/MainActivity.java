@@ -2,6 +2,8 @@ package com.pavlochechegov.taskmanager.activity;
 
 import android.content.Intent;
 import android.support.design.widget.CoordinatorLayout;
+
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -11,6 +13,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+
 import com.pavlochechegov.taskmanager.R;
 import com.pavlochechegov.taskmanager.model.Task;
 import com.pavlochechegov.taskmanager.adapter.TaskBaseAdapter;
@@ -87,18 +90,19 @@ public class MainActivity extends AppCompatActivity {
 
     // TODO: initialize all widget on screen
     private void initUI() {
+        mTaskListView = (ListView) findViewById(R.id.listViewTask);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fabAddTask);
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
-        mTaskListView = (ListView) findViewById(R.id.listViewTask);
         mTaskBaseAdapter = new TaskBaseAdapter(this, mTaskArrayList, getResources());
         mTaskListView.setAdapter(mTaskBaseAdapter);
 
         //change items in ListView
         mTaskListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Task task = mTaskBaseAdapter.getItem(position);
+            public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
+                final Task task = mTaskBaseAdapter.getItem(position);
 
                 if (task.getTaskStartTime() == 0) {
 
@@ -114,7 +118,16 @@ public class MainActivity extends AppCompatActivity {
                     task.setTaskEndTime(mTaskTimeEnd);
                     task.setTaskColor(R.color.finish_task_color);
                     mTaskArrayList.set(position, task);
-                    Snackbar.make(view, R.string.task_finished, Snackbar.LENGTH_SHORT).show();
+                    Snackbar.make(view, R.string.task_finished, Snackbar.LENGTH_LONG)
+                            .setAction(R.string.undo, new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    task.setTaskEndTime(0);
+                                    task.setTaskColor(R.color.start_task_color);
+                                    mTaskArrayList.set(position, task);
+                                    mTaskBaseAdapter.notifyDataSetChanged();
+                                }
+                            }).show();
                 }
                 saveArrayList(mTaskArrayList);
             }

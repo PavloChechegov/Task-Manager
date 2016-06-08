@@ -13,4 +13,5 @@
     <string name="task">Task #</string>
     <string name="comment">Comment #</string>
     <string name="new_task_added">New tasks were added</string>
+    <string name="undo">UNDO</string>
 </resources>

@@ -23,14 +23,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_add_white_24dp"
-            style="@style/Widget.Design.FloatingActionButton"
             android:id="@+id/fabAddTask"
             app:fabSize="normal"
-            android:background="@drawable/selector_button_save"
-            android:foregroundGravity="bottom|right"
+            style="@style/Widget.Design.FloatingActionButton"
             app:layout_anchor="@id/listViewTask"
-            android:layout_margin="16dp"
-            app:layout_anchorGravity="bottom|end"
+            android:layout_margin="@dimen/button_padding"
+            app:layout_anchorGravity="bottom|right|end"
             android:onClick="addTaskToListView"/>
 
 </android.support.design.widget.CoordinatorLayout>

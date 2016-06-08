@@ -13,4 +13,5 @@
     <string name="task">Задание #</string>
     <string name="comment">Коментар #</string>
     <string name="new_task_added">Было добавлено новые задания</string>
+    <string name="undo">Отменить</string>
 </resources>

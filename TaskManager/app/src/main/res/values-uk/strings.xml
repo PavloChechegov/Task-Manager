@@ -13,4 +13,5 @@
     <string name="task">Завдання #</string>
     <string name="comment">Коментар #</string>
     <string name="new_task_added">Було додано нові завдання</string>
+    <string name="undo">Відмінити</string>
 </resources>
