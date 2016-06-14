@@ -1,9 +1,6 @@
 package com.pavlochechegov.taskmanager.adapter;
 
 import android.content.Context;
-import android.content.res.Resources;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,13 +17,11 @@ import java.util.TimeZone;
 public class TaskBaseAdapter extends BaseAdapter {
     private Context mContext;
     private ArrayList<Task> mTaskArrayList;
-    private Resources mResources;
     private DateFormat mDFTaskTime, mDFDifferenceTime;
 
-    public TaskBaseAdapter(Context context, ArrayList<Task> taskArrayList, Resources resources) {
+    public TaskBaseAdapter(Context context, ArrayList<Task> taskArrayList) {
         mContext = context;
         mTaskArrayList = taskArrayList;
-        mResources = resources;
         mDFTaskTime = new SimpleDateFormat("dd.MM.yyyy HH:mm");
         mDFDifferenceTime = new SimpleDateFormat("HH:mm:ss");
         mDFDifferenceTime.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -72,7 +67,7 @@ public class TaskBaseAdapter extends BaseAdapter {
             viewHolder = (ViewHolder) convertView.getTag();
         }
 
-        convertView.setBackgroundColor(mResources.getColor(task.getTaskColor()));
+        convertView.setBackgroundResource(task.getTaskColor());
 
         viewHolder.mTextViewTaskTitle.setText(task.getTaskTitle());
         viewHolder.mTextViewTaskComment.setText(task.getTaskComment());

@@ -17,7 +17,7 @@
             android:paddingRight="@dimen/activity_horizontal_margin"
             android:paddingTop="@dimen/activity_vertical_margin"
             android:paddingBottom="@dimen/activity_vertical_margin"
-            tools:context=".activity.TaskActivity" android:orientation="horizontal" android:weightSum="1"
+            tools:context=".activities.TaskActivity" android:orientation="horizontal" android:weightSum="1"
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <EditText android:layout_width="match_parent"
@@ -34,33 +34,6 @@
                   android:id="@+id/etTaskComment"
                   android:textSize="@dimen/text_size_description"
                   android:hint="@string/comment_task" android:inputType="textCapSentences"/>
-
-        <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_below="@+id/etTaskComment">
-
-            <Button android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/btnCancel"
-                    android:layout_columnWeight="1"
-                    android:layout_weight="1"
-                    android:text="@string/button_cancel"
-                    android:textColor="@android:color/white"
-                    android:background="@drawable/selector_button_cancel"
-                    android:onClick="cancelTask"/>
-
-
-            <Button android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/btnSaveTask"
-                    android:layout_columnWeight="1"
-                    android:layout_weight="1"
-                    android:text="@string/button_save_task"
-                    android:textColor="@android:color/white"
-                    android:background="@drawable/selector_button_save"
-                    android:onClick="createTask"/>
-        </LinearLayout>
 
     </RelativeLayout>
 </android.support.design.widget.CoordinatorLayout>

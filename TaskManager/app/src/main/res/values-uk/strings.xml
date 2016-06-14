@@ -14,4 +14,7 @@
     <string name="comment">Коментар #</string>
     <string name="new_task_added">Було додано нові завдання</string>
     <string name="undo">Відмінити</string>
+    <string name="label_main_activity_current_tasks">Поточні завдання</string>
+    <string name="action_title_menu_spinner">Налаштування</string>
+    <string name="action_title_exit">Exit</string>
 </resources>

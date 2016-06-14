@@ -14,4 +14,7 @@
     <string name="comment">Коментар #</string>
     <string name="new_task_added">Было добавлено новые задания</string>
     <string name="undo">Отменить</string>
+    <string name="label_main_activity_current_tasks">Текущие задания</string>
+    <string name="action_title_menu_spinner">Настройки</string>
+    <string name="action_title_exit">Exit</string>
 </resources>

@@ -5,14 +5,58 @@
       tools:context=".MainActivity">
     <item
             android:id="@+id/action_add"
-            android:orderInCategory="2"
-            android:title="@string/action_add"
-            android:icon="@drawable/ic_more_vert_white_24dp"
-            app:showAsAction="ifRoom"/>
-    <item
-            android:icon="@drawable/ic_delete_white_24dp"
-            android:id="@+id/action_delete_elements"
-            android:title="Delete ListView"
             android:orderInCategory="1"
-            app:showAsAction="ifRoom"/>
+            android:title="@string/action_add"
+            android:icon="@drawable/ic_add_white_24dp"
+            app:showAsAction="always">
+    </item>
+
+    <item
+            android:id="@+id/sort_item"
+            android:orderInCategory="2"
+            android:title="@string/sort_item"
+            android:icon="@drawable/ic_sort_white_24dp"
+            app:showAsAction="always">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item android:id="@+id/sort_a_z"
+                      android:title="@string/sort_a_z"/>
+                <item android:id="@+id/sort_z_a"
+                      android:title="@string/sort_z_a"/>
+                <item android:id="@+id/sort_time_start_end"
+                      android:title="0-10"/>
+                <item android:id="@+id/sort_time_end_start"
+                      android:title="10-0"/>
+            </group>
+        </menu>
+    </item>
+
+    <item
+            android:id="@+id/action_setting"
+            android:icon="@drawable/ic_settings_white_24dp"
+            android:title="@string/action_title_setting"
+            android:orderInCategory="3"
+            app:showAsAction="always">
+
+    </item>
+    <item android:id="@+id/action_menu_spinner"
+          android:title="@string/action_title_menu_spinner"
+          android:icon="@drawable/ic_more_vert_white_24dp"
+          android:orderInCategory="4"
+          app:showAsAction="always">
+
+        <menu>
+            <item
+                    android:id="@+id/action_delete_elements"
+                    android:title="@string/acton_title_delete_listView"/>
+
+            <item
+                    android:id="@+id/action_generate_tasks"
+                    android:title="@string/action_title_generate_tasks"/>
+            <item
+                    android:id="@+id/action_exit"
+                    android:title="@string/action_title_exit"/>
+        </menu>
+
+    </item>
 </menu>
