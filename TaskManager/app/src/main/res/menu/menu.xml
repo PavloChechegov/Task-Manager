@@ -17,6 +17,7 @@
             android:title="@string/sort_item"
             android:icon="@drawable/ic_sort_white_24dp"
             app:showAsAction="always">
+
         <menu>
             <group android:checkableBehavior="single">
                 <item android:id="@+id/sort_a_z"

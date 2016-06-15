@@ -1,24 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+                  xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <PreferenceCategory
-            android:title="TitleSetting"
+            android:title="Color Settings"
             android:key="pref_key_storage_settings">
 
-        <CheckBoxPreference
-                android:key="pref_key_auto_delete"
-                android:summary="checkbox"
-                android:title="Checkbox"
-                android:defaultValue="false" />
-        <Preference
-                android:key="pref_key_sms_delete_limit"
-                android:dependency="pref_key_auto_delete"
-                android:summary="preference"
-                android:title="Preference" />
-        <Preference
-                android:key="pref_key_mms_delete_limit"
-                android:dependency="pref_key_auto_delete"
-                android:summary="preference2"
-                android:title="Preference2"  />
+        <yuku.ambilwarna.widget.AmbilWarnaPreference
+                android:key="@string/preference_key_default_color"
+                android:defaultValue="@color/default_task_color"
+                android:title="Pick a task default color" />
+
+        <yuku.ambilwarna.widget.AmbilWarnaPreference
+                android:key="@string/preference_key_start_task_color"
+                android:defaultValue="@color/start_task_color"
+                android:title="Pick a color for start task" />
+
+        <yuku.ambilwarna.widget.AmbilWarnaPreference
+                android:key="@string/preference_key_end_task_color"
+                android:defaultValue="@color/finish_task_color"
+                android:title="Pick a color for end task" />
     </PreferenceCategory>
-    ...
+
+    <PreferenceCategory
+    android:title="@string/title_restore_default_settings">
+        <Preference
+            android:key="@string/key_default_settings"
+            android:summary="@string/summary_restore_default_color"
+            android:title="@string/title_restore_default_color"/>
+    </PreferenceCategory>
+
 </PreferenceScreen>

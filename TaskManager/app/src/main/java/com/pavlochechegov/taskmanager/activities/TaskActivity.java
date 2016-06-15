@@ -1,6 +1,8 @@
 package com.pavlochechegov.taskmanager.activities;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -26,6 +28,7 @@ public class TaskActivity extends AppCompatActivity {
     private Task mTask;
     protected int positionOfItem;
     private CoordinatorLayout mCoordinatorLayout;
+    private int defaultColor;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,6 +43,9 @@ public class TaskActivity extends AppCompatActivity {
             mEditTextTaskTitle.setText(mTask.getTaskTitle());
             mEditTextTaskComment.setText(mTask.getTaskComment());
         }
+
+        SharedPreferences mDefaultSetting = PreferenceManager.getDefaultSharedPreferences(this);
+        defaultColor = mDefaultSetting.getInt("preference_key_default_color", 0);
     }
 
     // TODO: initialize all widget on screen
@@ -64,7 +70,7 @@ public class TaskActivity extends AppCompatActivity {
             Snackbar.make(mCoordinatorLayout, R.string.empty_fields, Snackbar.LENGTH_SHORT).show();
         } else {
             mTask = new Task(mEditTextTaskTitle.getText().toString(),
-                    mEditTextTaskComment.getText().toString(), 0, 0, R.color.default_task_color);
+                    mEditTextTaskComment.getText().toString(), 0, 0, defaultColor);
             Intent intent = new Intent();
             intent.putExtra(KEY_TASK_EXTRA, mTask);
             intent.putExtra(KEY_ITEM_POSITION, positionOfItem);

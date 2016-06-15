@@ -67,7 +67,7 @@ public class TaskBaseAdapter extends BaseAdapter {
             viewHolder = (ViewHolder) convertView.getTag();
         }
 
-        convertView.setBackgroundResource(task.getTaskColor());
+        convertView.setBackgroundColor(task.getTaskColor());
 
         viewHolder.mTextViewTaskTitle.setText(task.getTaskTitle());
         viewHolder.mTextViewTaskComment.setText(task.getTaskComment());

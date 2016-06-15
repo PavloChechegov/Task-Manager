@@ -1,13 +1,12 @@
 package com.pavlochechegov.taskmanager.activities;
 
-import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.design.widget.CoordinatorLayout;
-
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v7.app.AlertDialog;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -16,7 +15,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-
 import com.pavlochechegov.taskmanager.fragment.DeleteDialogFragment;
 import com.pavlochechegov.taskmanager.R;
 import com.pavlochechegov.taskmanager.model.Task;
@@ -27,11 +25,18 @@ import java.util.*;
 
 import static com.pavlochechegov.taskmanager.activities.TaskActivity.KEY_TASK_EXTRA;
 
-public class MainActivity extends AppCompatActivity implements DeleteDialogFragment.DeleteAllItem{
+public class MainActivity extends AppCompatActivity implements DeleteDialogFragment.DeleteAllItem {
 
     public static final String KEY_SAVE_STATE = "save_instance_state";
     public static final String KEY_ITEM_LONG_CLICK = "long_click_item";
     public static final String KEY_ITEM_POSITION = "item_position";
+    public static final String PREFERENCE_KEY_DEFAULT_COLOR = "preference_key_default_color";
+    public static final String PREFERENCE_KEY_START_TASK_COLOR = "preference_key_start_task_color";
+    public static final String PREFERENCE_KEY_END_TASK_COLOR = "preference_key_end_task_color";
+    public static final String TAG_ALERT_DIALOG = "alert_dialog";
+    private static final int REQUEST_CODE_ADD_TASK = 1;
+    private static final int REQUEST_CODE_CHANGE_TASK = 2;
+    private static final int REQUEST_CODE_SETTING = 3;
     private ListView mTaskListView;
     private ArrayList<Task> mTaskArrayList;
     private TaskBaseAdapter mTaskBaseAdapter;
@@ -39,10 +44,11 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
     private long mTaskTimeStart, mTaskTimeEnd;
     private int mIntItemPosition;
     private SaveTask mSaveTask;
-    CoordinatorLayout coordinatorLayout;
+    private CoordinatorLayout coordinatorLayout;
     private Random mRandom;
-    private AlertDialog.Builder mBuilder;
-    private AlertDialog mDialog;
+    private int defaultTaskColor, startColor, endColor;
+    private SharedPreferences mDefaultSetting;
+    private boolean doubleBackToExitPressedOnce = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +60,29 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
         } else {
             mTaskArrayList = new ArrayList<>();
         }
+        initColor();
         initUI();
+    }
+
+    //initialize default colors
+    public void initColor() {
+        mDefaultSetting = PreferenceManager.getDefaultSharedPreferences(this);
+        defaultTaskColor = mDefaultSetting.getInt(PREFERENCE_KEY_DEFAULT_COLOR, 0);
+        startColor = mDefaultSetting.getInt(PREFERENCE_KEY_START_TASK_COLOR, 0);
+        endColor = mDefaultSetting.getInt(PREFERENCE_KEY_END_TASK_COLOR, 0);
+    }
+
+    //update colors in Tasks
+    public void updateColor(ArrayList<Task> arrayList) {
+        for (Task anArrayList : arrayList) {
+            if (anArrayList.getTaskStartTime() == 0) {
+                anArrayList.setTaskColor(defaultTaskColor);
+            } else if (anArrayList.getTaskEndTime() == 0) {
+                anArrayList.setTaskColor(startColor);
+            } else {
+                anArrayList.setTaskColor(endColor);
+            }
+        }
     }
 
     @Override
@@ -80,50 +108,36 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
                     mIntItemPosition = data.getIntExtra(KEY_ITEM_POSITION, DEFAULT_KEYS_DIALER);
                     mTaskArrayList.set(mIntItemPosition, mTask);
                     break;
+                case 3:
+                    initColor();
+                    updateColor(mTaskArrayList);
+                    break;
                 default:
                     break;
             }
         }
-        saveArrayList(mTaskArrayList);
+        saveSortedTask(mTaskArrayList);
     }
-
 
     // TODO: initialize all widget on screen
     private void initUI() {
 
         //create Dialog window for deleting all task from ArrayList<Task> and memory
-        mBuilder = new AlertDialog.Builder(MainActivity.this);
-        mBuilder.setTitle("Delete tasks")
-                .setMessage("Do you want to delete all tasks?")
-                .setIcon(R.mipmap.ic_launcher)
-                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Snackbar.make(coordinatorLayout, "Tasks were deleted", Snackbar.LENGTH_SHORT).show();
-                        mTaskArrayList.clear();
-                        mSaveTask.clearData();
-                        mTaskBaseAdapter.notifyDataSetChanged();
-                    }
-                })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                });
-        mDialog = mBuilder.create();
-
         mTaskListView = (ListView) findViewById(R.id.listViewTask);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fabAddTask);
+        assert getSupportActionBar() != null;
+        getSupportActionBar().setTitle(R.string.label_main_activity_current_tasks);
+
+
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
 
-        //loading ArrayList<Task> from memory and showing in ListView
+        //loading ArrayList<Task> from Sharedpref and showing in ListView
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
                 mTaskArrayList = mSaveTask.loadData();
+                updateColor(mTaskArrayList);
                 mTaskBaseAdapter = new TaskBaseAdapter(getBaseContext(), mTaskArrayList);
                 mTaskListView.setAdapter(mTaskBaseAdapter);
             }
@@ -142,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
 
                     mTaskTimeStart = System.currentTimeMillis();
                     task.setTaskStartTime(mTaskTimeStart);
-                    task.setTaskColor(R.color.start_task_color);
+                    task.setTaskColor(startColor);
                     mTaskArrayList.set(position, task);
                     Snackbar.make(view, R.string.task_started, Snackbar.LENGTH_SHORT).show();
 
@@ -150,7 +164,7 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
 
                     mTaskTimeEnd = System.currentTimeMillis();
                     task.setTaskEndTime(mTaskTimeEnd);
-                    task.setTaskColor(R.color.finish_task_color);
+                    task.setTaskColor(endColor);
                     mTaskArrayList.set(position, task);
                     Snackbar.make(view, R.string.task_finished, Snackbar.LENGTH_LONG)
                             .setActionTextColor(getResources().getColor(R.color.start_task_color))
@@ -158,13 +172,13 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
                                 @Override
                                 public void onClick(View v) {
                                     task.setTaskEndTime(0);
-                                    task.setTaskColor(R.color.start_task_color);
+                                    task.setTaskColor(startColor);
                                     mTaskArrayList.set(position, task);
                                     mTaskBaseAdapter.notifyDataSetChanged();
                                 }
                             }).show();
                 }
-                saveArrayList(mTaskArrayList);
+                saveSortedTask(mTaskArrayList);
             }
         });
 
@@ -174,13 +188,14 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
                 Intent longClickIntent = new Intent(MainActivity.this, TaskActivity.class);
                 longClickIntent.putExtra(KEY_ITEM_LONG_CLICK, mTaskBaseAdapter.getItem(position));
                 longClickIntent.putExtra(KEY_ITEM_POSITION, position);
-                startActivityForResult(longClickIntent, 2);
+                startActivityForResult(longClickIntent, REQUEST_CODE_CHANGE_TASK);
                 return true;
             }
         });
     }
 
-    private void saveArrayList(ArrayList<Task> taskArrayList) {
+    // save Arralist to SharedPreference
+    private void saveSortedTask(ArrayList<Task> taskArrayList) {
         mSaveTask.saveData(taskArrayList);
         mTaskBaseAdapter.notifyDataSetChanged();
     }
@@ -189,20 +204,42 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
     //TODO: go to TaskActivity and create Task object
     public void addTaskToListView(View v) {
         Intent intent = new Intent(this, TaskActivity.class);
-        startActivityForResult(intent, 1);
+        startActivityForResult(intent, REQUEST_CODE_ADD_TASK);
     }
 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu, menu);
+        MenuItem menuItem;
+        int id = mSaveTask.loadItemChecked();
+
+        //restore checkbox in Sort item menu
+        switch (id){
+            case R.id.sort_a_z:
+                menuItem = menu.findItem(id);
+                menuItem.setChecked(true);
+                break;
+            case R.id.sort_z_a:
+                menuItem = menu.findItem(id);
+                menuItem.setChecked(true);
+                break;
+            case R.id.sort_time_start_end:
+                menuItem = menu.findItem(id);
+                menuItem.setChecked(true);
+                break;
+            case R.id.sort_time_end_start:
+                menuItem = menu.findItem(id);
+                menuItem.setChecked(true);
+                break;
+        }
         return true;
     }
 
     //add button on toolbar
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        item.setChecked(!item.isChecked());
+
         switch (item.getItemId()) {
             case R.id.action_add:
                 addTaskToListView(item.getActionView());
@@ -214,80 +251,70 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
 
             //generate random Task and Comment
             case R.id.action_generate_tasks:
-                mTaskArrayList.add(0, new Task(
-                        getString(R.string.task) + generateRandomInt(),
-                        getString(R.string.comment) + generateRandomInt(),
-                        0,
-                        0,
-                        R.color.default_task_color));
+                mTaskArrayList.add(0, generateRandomTask());
                 addThreeScreenTasks();
                 return true;
 
             //delete all elements from ArrayList<Task> and memory
             case R.id.action_delete_elements:
-                if(!mTaskArrayList.isEmpty()){
-                    new DeleteDialogFragment().show(getSupportFragmentManager(), "tag");
-                }else {
-                    Snackbar.make(coordinatorLayout, "List is empty now, please add task", Snackbar.LENGTH_SHORT).show();
+                if (!mTaskArrayList.isEmpty()) {
+                    new DeleteDialogFragment().show(getSupportFragmentManager(), TAG_ALERT_DIALOG);
+                } else {
+                    Snackbar.make(coordinatorLayout, R.string.empty_list, Snackbar.LENGTH_SHORT).show();
                 }
                 return true;
 
             //go to SettingsActivity
             case R.id.action_setting:
                 Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
-                startActivity(intent);
+                startActivityForResult(intent, REQUEST_CODE_SETTING);
                 return true;
+
             //sorting item in ListView
             case R.id.sort_item:
-                item.setChecked(!item.isChecked());
                 return true;
 
             case R.id.sort_a_z:
-                Collections.sort(mTaskArrayList, new Comparator<Task>() {
-                    @Override
-                    public int compare(Task taskTitle1, Task taskTitle2) {
-                        return taskTitle1.getTaskTitle().compareToIgnoreCase(taskTitle2.getTaskTitle());
-                    }
-                });
-                saveArrayList(mTaskArrayList);
+                saveMenuItemChecked(item);
+                Collections.sort(mTaskArrayList, Task.AscendingTaskTitleComparator);
+                saveSortedTask(mTaskArrayList);
                 return true;
 
             case R.id.sort_z_a:
-                Collections.sort(mTaskArrayList, new Comparator<Task>() {
-                    @Override
-                    public int compare(Task taskTitle1, Task taskTitle2) {
-                        return taskTitle2.getTaskTitle().compareToIgnoreCase(taskTitle1.getTaskTitle());
-                    }
-                });
-                saveArrayList(mTaskArrayList);
+                saveMenuItemChecked(item);
+                Collections.sort(mTaskArrayList, Task.DescendingTaskTitleComparator);
+                saveSortedTask(mTaskArrayList);
                 return true;
 
             case R.id.sort_time_start_end:
-                Collections.sort(mTaskArrayList, new Comparator<Task>() {
-                    @Override
-                    public int compare(Task taskTime1, Task taskTime2) {
-                        return (int) (taskTime1.getTaskStartTime() - taskTime2.getTaskStartTime());
-                    }
-                });
-                saveArrayList(mTaskArrayList);
+                saveMenuItemChecked(item);
+                Collections.sort(mTaskArrayList, Task.AscendingTaskTimeComparator);
+                saveSortedTask(mTaskArrayList);
                 return true;
 
             case R.id.sort_time_end_start:
-                Collections.sort(mTaskArrayList, new Comparator<Task>() {
-                    @Override
-                    public int compare(Task taskTime1, Task taskTime2) {
-                        return (int) (taskTime2.getTaskStartTime() - taskTime1.getTaskStartTime());
-                    }
-                });
-                saveArrayList(mTaskArrayList);
+                saveMenuItemChecked(item);
+                Collections.sort(mTaskArrayList, Task.DescendingTaskTimeComparator);
+                saveSortedTask(mTaskArrayList);
                 return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
 
-    //generate Random int to Title and Comment fields
-    public int generateRandomInt() {
-        return mRandom.nextInt(150);
+    public void saveMenuItemChecked(MenuItem item){
+        item.setChecked(true);
+        mSaveTask.saveItemChecked(item.getItemId());
+    }
+
+    //generate Random Task to Title and Comment fields
+    public Task generateRandomTask() {
+        return new Task(
+                getString(R.string.task) + mRandom.nextInt(150),
+                getString(R.string.comment) +  mRandom.nextInt(150),
+                0,
+                0,
+                defaultTaskColor);
     }
 
     //add 3 screen item in listView
@@ -296,15 +323,10 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
         float y = mTaskListView.getHeight();
         int k = ((int) (y / o)) * 3;
         for (int i = 2; i <= k; i++) {
-            mTaskArrayList.add(0, new Task(
-                    getString(R.string.task) + generateRandomInt(),
-                    getString(R.string.comment) + generateRandomInt(),
-                    0,
-                    0,
-                    R.color.default_task_color));
+            mTaskArrayList.add(0, generateRandomTask());
         }
         Snackbar.make(coordinatorLayout, R.string.new_task_added, Snackbar.LENGTH_SHORT).show();
-        saveArrayList(mTaskArrayList);
+        saveSortedTask(mTaskArrayList);
     }
 
     //total height of 1 element of listView
@@ -317,10 +339,31 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
         return listViewElementsHeight;
     }
 
+    //delete ArrayList and SharedPreference data
     @Override
     public void delete() {
         mTaskArrayList.clear();
         mSaveTask.clearData();
         mTaskBaseAdapter.notifyDataSetChanged();
+    }
+
+    //double press back button to exit
+    @Override
+    public void onBackPressed() {
+        if (doubleBackToExitPressedOnce) {
+            super.onBackPressed();
+            return;
+        }
+
+        this.doubleBackToExitPressedOnce = true;
+        Snackbar.make(coordinatorLayout, R.string.double_on_back_pressed, Snackbar.LENGTH_SHORT).show();
+
+        new Handler().postDelayed(new Runnable() {
+
+            @Override
+            public void run() {
+                doubleBackToExitPressedOnce=false;
+            }
+        }, 2000);
     }
 }
