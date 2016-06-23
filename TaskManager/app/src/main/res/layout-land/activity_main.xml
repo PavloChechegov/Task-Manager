@@ -15,7 +15,7 @@
     <ListView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/listViewTask"
+            android:id="@+id/recyclerViewTask"
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
     </ListView>
 
@@ -26,7 +26,7 @@
             android:id="@+id/fabAddTask"
             app:fabSize="normal"
             style="@style/Widget.Design.FloatingActionButton"
-            app:layout_anchor="@id/listViewTask"
+            app:layout_anchor="@id/recyclerViewTask"
             android:layout_margin="@dimen/button_padding"
             app:layout_anchorGravity="bottom|right|end"
             android:onClick="addTaskToListView"/>

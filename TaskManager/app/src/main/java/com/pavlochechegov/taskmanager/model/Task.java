@@ -3,11 +3,15 @@ package com.pavlochechegov.taskmanager.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-
+import io.realm.RealmModel;
+import io.realm.RealmObject;
+import io.realm.RealmList;
+import io.realm.annotations.Ignore;
 import java.util.Comparator;
 
 
-public class Task implements Parcelable {
+public class Task extends RealmObject implements Parcelable {
+
     private String mTaskTitle;
     private String mTaskComment;
     private long mTaskStartTime;
@@ -15,6 +19,9 @@ public class Task implements Parcelable {
     private int mTaskColor;
     private int mIdTitle;
     private int mIdComment;
+
+    public Task() {
+    }
 
     public Task(String taskTitle, String taskComment, long taskStartTime, long taskEndTime, int color) {
         mTaskTitle = taskTitle;

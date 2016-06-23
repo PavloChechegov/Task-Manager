@@ -8,31 +8,39 @@
             android:label="@string/app_name"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
-
         <activity
                 android:name=".activities.MainActivity"
                 android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
-
         <activity
-                android:theme="@style/AppTheme.NoActionBar"
                 android:name=".activities.TaskActivity"
-                android:label="@string/create_new_task">
+                android:label="@string/create_new_task"
+                android:theme="@style/AppTheme.NoActionBar">
         </activity>
-
         <activity
-                android:theme="@style/AppTheme.NoActionBar"
                 android:name=".activities.SettingsActivity"
                 android:label="@string/title_activity_settings"
-                android:parentActivityName=".activities.MainActivity">
+                android:parentActivityName=".activities.MainActivity"
+                android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value="com.pavlochechegov.taskmanager.activities.MainActivity"/>
+        </activity>
+
+        <activity
+                android:name=".activities.SplashScreenActivity"
+                android:label="@string/title_activity_splash_screen"
+                android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
         </activity>
     </application>
 

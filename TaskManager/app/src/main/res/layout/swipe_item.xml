@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.daimajia.swipe.SwipeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                                xmlns:swipe="http://schemas.android.com/apk/res-auto"
+                                android:id="@+id/swipe"
+                                android:orientation="vertical"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                swipe:leftEdgeSwipeOffset="0dp"
+                                swipe:rightEdgeSwipeOffset="0dp">
+
+    <LinearLayout
+            android:id="@+id/swipeRightToLeft"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+        <Button
+                android:id="@+id/btnEditTaskItem"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/colorPrimary"
+                android:text="Edit"
+        />
+        <Button
+                android:id="@+id/btnDeleteTaskItem"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:background="@color/colorAccent"
+                android:text="Delete"/>
+    </LinearLayout>
+
+    <LinearLayout
+            android:id="@+id/swipeLeftToRight"
+            android:layout_width="80dp"
+            android:layout_height="match_parent"
+            android:weightSum="1">
+
+        <ImageButton
+                android:id="@+id/imgBtnRestoreTask"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@color/colorPrimaryDark"
+                android:gravity="center"
+                android:src="@drawable/ic_refresh_white_24dp"/>
+
+        <!--<ImageButton-->
+                <!--android:layout_width="40dp"-->
+                <!--android:layout_height="match_parent"-->
+                <!--android:id="@+id/imgBtnResetEndTask"-->
+                <!--android:layout_weight="1"-->
+                <!--android:gravity="center"-->
+                <!--android:src="@drawable/ic_not_interested_white_24dp"-->
+                <!--android:background="@color/colorAccent"/>-->
+
+    </LinearLayout>
+
+    <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|center_horizontal"
+            android:background="?android:selectableItemBackground">
+
+        <include layout="@layout/list_item_task"/>
+    </RelativeLayout>
+
+</com.daimajia.swipe.SwipeLayout>

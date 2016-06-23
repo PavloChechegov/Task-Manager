@@ -9,25 +9,38 @@
         <yuku.ambilwarna.widget.AmbilWarnaPreference
                 android:key="@string/preference_key_default_color"
                 android:defaultValue="@color/default_task_color"
-                android:title="Pick a task default color" />
+                android:title="Pick a task default color"/>
 
         <yuku.ambilwarna.widget.AmbilWarnaPreference
                 android:key="@string/preference_key_start_task_color"
                 android:defaultValue="@color/start_task_color"
-                android:title="Pick a color for start task" />
+                android:title="Pick a color for start task"/>
 
         <yuku.ambilwarna.widget.AmbilWarnaPreference
                 android:key="@string/preference_key_end_task_color"
                 android:defaultValue="@color/finish_task_color"
-                android:title="Pick a color for end task" />
+                android:title="Pick a color for end task"/>
     </PreferenceCategory>
 
     <PreferenceCategory
-    android:title="@string/title_restore_default_settings">
+            android:title="@string/title_restore_default_settings">
         <Preference
-            android:key="@string/key_default_settings"
-            android:summary="@string/summary_restore_default_color"
-            android:title="@string/title_restore_default_color"/>
+                android:key="@string/key_default_settings"
+                android:summary="@string/summary_restore_default_color"
+                android:title="@string/title_restore_default_color"/>
     </PreferenceCategory>
 
+    <PreferenceCategory
+            android:title="Change theme color">
+        <Preference
+                android:key="key_theme_color"
+                android:title="Change theme color">
+        </Preference>
+
+        <com.pavlochechegov.taskmanager.pref_widget.TimePreference
+                android:key="pref_task_time_dialog"
+                android:title="Time Picker"
+                android:defaultValue="3600000"
+        />
+    </PreferenceCategory>
 </PreferenceScreen>

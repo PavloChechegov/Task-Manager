@@ -5,14 +5,21 @@
             android:title="Save task"
             android:icon="@drawable/ic_done_white_24dp"
             app:showAsAction="ifRoom"
-            android:orderInCategory="2">
+            android:orderInCategory="3">
     </item>
     <item
             android:id="@+id/action_cancel"
             android:title="Cancel"
             android:icon="@drawable/ic_clear_white_24dp"
             app:showAsAction="ifRoom"
-            android:orderInCategory="1">
+            android:orderInCategory="2">
+    </item>
+
+    <item android:id="@+id/action_voice"
+          android:title="Voice"
+          android:icon="@drawable/ic_keyboard_voice_white_24dp"
+          app:showAsAction="ifRoom"
+          android:orderInCategory="1">
 
     </item>
 </menu>

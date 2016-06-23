@@ -33,5 +33,10 @@
     <string name="title_restore_default_settings">Restore default setting</string>
     <string name="empty_list">List is empty now, please add task</string>
     <string name="double_on_back_pressed">Press again to exit</string>
+    <string name="color_palette">Color palette</string>
+    <string name="title_activity_splash_screen">SplashScreenActivity</string>
+    <string name="err_msg_title">Enter task title</string>
+    <string name="err_msg_comment">Enter task comment</string>
+    <string name="err_msg_title_length">Your task name smaller than must be</string>
 
 </resources>

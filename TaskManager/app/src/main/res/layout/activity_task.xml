@@ -11,6 +11,7 @@
     <include layout="@layout/app_bar_layout"/>
 
     <RelativeLayout
+            android:background="@drawable/gradient"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:paddingLeft="@dimen/activity_horizontal_margin"
@@ -20,20 +21,34 @@
             tools:context=".activities.TaskActivity" android:orientation="horizontal" android:weightSum="1"
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <EditText android:layout_width="match_parent"
-                  android:layout_height="wrap_content"
-                  android:id="@+id/etTaskTitle"
-                  android:singleLine="true"
-                  android:textSize="@dimen/text_size_title"
-                  android:hint="@string/enter_task" android:inputType="textCapSentences"/>
+        <android.support.design.widget.TextInputLayout
+                android:id="@+id/txt_input_layout_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
-        <EditText android:layout_width="match_parent"
-                  android:layout_height="wrap_content"
-                  android:maxLines="3"
-                  android:layout_below="@+id/etTaskTitle"
-                  android:id="@+id/etTaskComment"
-                  android:textSize="@dimen/text_size_description"
-                  android:hint="@string/comment_task" android:inputType="textCapSentences"/>
+            <EditText android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:id="@+id/edit_txt_task_title"
+                      android:singleLine="true"
+                      android:textSize="@dimen/text_size_title"
+                      android:hint="@string/enter_task" android:inputType="textCapSentences"/>
+
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
+                android:id="@+id/txt_input_layout_comment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/txt_input_layout_title">
+
+            <EditText android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:maxLines="3"
+
+                      android:id="@+id/edit_txt_task_comment"
+                      android:textSize="@dimen/text_size_description"
+                      android:hint="@string/comment_task" android:inputType="textCapSentences"/>
+        </android.support.design.widget.TextInputLayout>
 
     </RelativeLayout>
 </android.support.design.widget.CoordinatorLayout>
