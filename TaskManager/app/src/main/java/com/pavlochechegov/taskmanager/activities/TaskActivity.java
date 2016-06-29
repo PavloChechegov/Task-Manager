@@ -20,13 +20,15 @@ import com.pavlochechegov.taskmanager.model.Task;
 import com.pavlochechegov.taskmanager.model.TaskColors;
 import com.pavlochechegov.taskmanager.utils.ManagerControlTask;
 
-import static com.pavlochechegov.taskmanager.activities.MainActivity.KEY_ITEM_LONG_CLICK;
+import java.util.UUID;
+
+import static com.pavlochechegov.taskmanager.activities.MainActivity.KEY_ITEM_EDIT_TASK;
 import static com.pavlochechegov.taskmanager.activities.MainActivity.KEY_ITEM_POSITION;
 
 public class TaskActivity extends AppCompatActivity {
 
     public static final String KEY_TASK_EXTRA = "key_task_extra";
-    private static final int REQUEST_CODE = 4;
+    private static final int REQUEST_CODE_VOICE = 4;
     private EditText mEditTextTaskTitle, mEditTextTaskComment;
     private Task mTask;
     protected int positionOfItem;
@@ -41,17 +43,17 @@ public class TaskActivity extends AppCompatActivity {
         setContentView(R.layout.activity_task);
 
         initUI();
+        managerControlTask = ManagerControlTask.getSingletonControl(this);
+        taskColors = managerControlTask.initTaskItemColor();
 
         Intent intent = getIntent();
-        if (intent.hasExtra(KEY_ITEM_LONG_CLICK)) {
-            mTask = intent.getParcelableExtra(KEY_ITEM_LONG_CLICK);
+        if (intent.hasExtra(KEY_ITEM_EDIT_TASK)) {
+            mTask = intent.getParcelableExtra(KEY_ITEM_EDIT_TASK);
             positionOfItem = intent.getIntExtra(KEY_ITEM_POSITION, DEFAULT_KEYS_DIALER);
             mEditTextTaskTitle.setText(mTask.getTaskTitle());
             mEditTextTaskComment.setText(mTask.getTaskComment());
-        }
 
-        managerControlTask = new ManagerControlTask(this);
-        taskColors = managerControlTask.initTaskItemColor();
+        }
     }
 
     // TODO: initialize all widget on screen
@@ -63,11 +65,10 @@ public class TaskActivity extends AppCompatActivity {
         mEditTextTaskComment = (EditText) findViewById(R.id.edit_txt_task_comment);
         mInputLayoutTitle = (TextInputLayout) findViewById(R.id.txt_input_layout_title);
         mInputLayoutComment = (TextInputLayout) findViewById(R.id.txt_input_layout_comment);
-
         mEditTextTaskTitle.addTextChangedListener(new MyTextWatcher(mEditTextTaskTitle));
         mEditTextTaskComment.addTextChangedListener(new MyTextWatcher(mEditTextTaskComment));
-
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+
     }
 
     // TODO: exit from TaskActivity and return to MainActivity without saving Task object
@@ -77,31 +78,43 @@ public class TaskActivity extends AppCompatActivity {
 
     // TODO: create Task object and send to MainActivity
     public void createTask(View view) {
+        Intent intent = new Intent();
 
-        if (validateTitle() && validateComment()) {
-            mTask = new Task(mEditTextTaskTitle.getText().toString(),
-                    mEditTextTaskComment.getText().toString(), 0, 0, taskColors.getDefaultColor());
-            Intent intent = new Intent();
-            intent.putExtra(KEY_TASK_EXTRA, mTask);
-            intent.putExtra(KEY_ITEM_POSITION, positionOfItem);
-            setResult(RESULT_OK, intent);
-            finish();
+        if (mTask == null) {
+            if (validateTitle() && validateComment()) {
+                mTask = new Task(UUID.randomUUID().toString(), mEditTextTaskTitle.getText().toString(),
+                        mEditTextTaskComment.getText().toString(), 0, 0, taskColors.getDefaultColor());
+
+                intent.putExtra(KEY_TASK_EXTRA, mTask);
+                setResult(RESULT_OK, intent);
+                finish();
+            } else {
+                Snackbar.make(mCoordinatorLayout, R.string.empty_fields, Snackbar.LENGTH_SHORT).show();
+            }
+
         } else {
-            Snackbar.make(mCoordinatorLayout, R.string.empty_fields, Snackbar.LENGTH_SHORT).show();
+            if (validateTitle() && validateComment()) {
+                mTask.setTaskTitle(mEditTextTaskTitle.getText().toString());
+                mTask.setTaskComment(mEditTextTaskComment.getText().toString());
+                intent.putExtra(KEY_TASK_EXTRA, mTask);
+                intent.putExtra(KEY_ITEM_POSITION, positionOfItem);
+                setResult(RESULT_OK, intent);
+                finish();
+            } else {
+                Snackbar.make(mCoordinatorLayout, R.string.empty_fields, Snackbar.LENGTH_SHORT).show();
+            }
         }
+
     }
 
+
     private boolean validateTitle() {
-        mInputLayoutTitle.setError(null);
-        if (mEditTextTaskTitle.getText().toString().isEmpty()) {
-            requestFocus(mEditTextTaskTitle);
-            mInputLayoutTitle.setErrorEnabled(true);
+        mInputLayoutComment.setError(null);
+        if (mEditTextTaskTitle.getText().toString().length() <= 5) {
             mInputLayoutTitle.setError(getString(R.string.err_msg_title));
-            return false;
-        } else if (mEditTextTaskTitle.getText().toString().length() <= 5) {
-            requestFocus(mEditTextTaskTitle);
             mInputLayoutTitle.setErrorEnabled(true);
-            mInputLayoutTitle.setError(getString(R.string.err_msg_title_length));
+            requestFocus(mEditTextTaskTitle);
+
             return false;
         } else {
             mInputLayoutTitle.setErrorEnabled(false);
@@ -112,9 +125,10 @@ public class TaskActivity extends AppCompatActivity {
     private boolean validateComment() {
         mInputLayoutComment.setError(null);
         if (mEditTextTaskComment.getText().toString().isEmpty()) {
-            requestFocus(mEditTextTaskComment);
-            mInputLayoutComment.setErrorEnabled(true);
             mInputLayoutComment.setError(getString(R.string.err_msg_comment));
+            mInputLayoutComment.setErrorEnabled(true);
+            requestFocus(mEditTextTaskComment);
+
             return false;
         } else {
             mInputLayoutComment.setErrorEnabled(false);
@@ -174,7 +188,7 @@ public class TaskActivity extends AppCompatActivity {
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                 RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Voice recognition Demo...");
-        startActivityForResult(intent, REQUEST_CODE);
+        startActivityForResult(intent, REQUEST_CODE_VOICE);
     }
 
     @Override
@@ -185,7 +199,7 @@ public class TaskActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
+        if (requestCode == REQUEST_CODE_VOICE && resultCode == RESULT_OK) {
             if (mEditTextTaskTitle.isFocused()) {
                 mEditTextTaskTitle.setText(data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS).get(0));
             } else {

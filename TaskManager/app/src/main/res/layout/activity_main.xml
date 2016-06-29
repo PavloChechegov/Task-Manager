@@ -24,11 +24,9 @@
             android:layout_height="wrap_content"
             android:src="@drawable/ic_add_white_24dp"
             android:id="@+id/fabAddTask"
-            app:fabSize="normal"
             style="@style/Widget.Design.FloatingActionButton"
-            app:layout_anchor="@id/recyclerViewTask"
             android:layout_margin="@dimen/button_padding"
-            app:layout_anchorGravity="bottom|right|end"
-            android:onClick="addTaskToListView"/>
+            android:layout_gravity="bottom|end"
+            android:onClick="addNewTask"/>
 
 </android.support.design.widget.CoordinatorLayout>

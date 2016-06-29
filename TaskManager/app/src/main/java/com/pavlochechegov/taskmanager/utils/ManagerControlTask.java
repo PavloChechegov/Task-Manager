@@ -4,21 +4,13 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import com.pavlochechegov.taskmanager.model.Task;
 import com.pavlochechegov.taskmanager.model.TaskColors;
-import io.realm.Realm;
-import io.realm.RealmConfiguration;
-import io.realm.RealmList;
-import io.realm.RealmResults;
+import io.realm.*;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 public class ManagerControlTask {
-    public static final String KEY_DATA_SAVE = "key_data_save";
     private static final String APP_PREFERENCES = "app_preferences";
     private static final String KEY_ITEM_CHECKED = "key_item_checked";
     private static final String KEY_THEME_COLOR = "key_theme_color";
@@ -27,67 +19,156 @@ public class ManagerControlTask {
     public static final String PREFERENCE_KEY_END_TASK_COLOR = "preference_key_end_task_color";
     private SharedPreferences preferences;
     private SharedPreferences.Editor editor;
-    private Gson gson;
     private int mMenuItemId;
     private int mThemeColor;
     private static ManagerControlTask sManagerControlTask;
-    private int mDefaultTaskColor, mStartTaskColor, mEndTaskColor;
     private SharedPreferences mDefaultSetting;
     private Context mContext;
     private TaskColors mTaskColors;
     RealmConfiguration mRealmConfiguration;
     private Realm mRealm;
-    private int mItemId;
 
-//    private static ManagerControlTask getSaveTask(Context context){
-//        if(sManagerControlTask == null){
-//            sManagerControlTask = new ManagerControlTask(context.getApplicationContext());
-//
-//        }
-//        return sManagerControlTask;
-//    }
-
-
-    public ManagerControlTask() {
+    public static ManagerControlTask getSingletonControl(Context context) {
+        if (sManagerControlTask == null) {
+            sManagerControlTask = new ManagerControlTask(context.getApplicationContext());
+        }
+        return sManagerControlTask;
     }
 
     public ManagerControlTask(Context context) {
         mContext = context;
-        mRealmConfiguration = new RealmConfiguration.Builder(mContext).build();
+        mRealmConfiguration = new RealmConfiguration
+                .Builder(mContext)
+                .deleteRealmIfMigrationNeeded()
+                .name("realm_file")
+                .build();
 
-//        // Clear the realm from last time
-//        Realm.deleteRealm(mRealmConfiguration);
-
+        Realm.setDefaultConfiguration(mRealmConfiguration);
         // Create a new empty instance of Realm
-        mRealm = Realm.getInstance(mRealmConfiguration);
+        mRealm = Realm.getDefaultInstance();
+//        mRealm.setAutoRefresh(true);
         preferences = context.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
         editor = preferences.edit();
-        gson = new Gson();
     }
 
-    //save data
-    public void saveArrayList(ArrayList<Task> taskArrayList) {
-        String jsonStr = gson.toJson(taskArrayList);
-        editor.putString(KEY_DATA_SAVE, jsonStr);
-        editor.apply();
+
+    public void deleteTaskFromRealm(String uuid) {
+        mRealm.beginTransaction();
+        Task taskDelete = mRealm.where(Task.class).equalTo("mId", uuid).findFirst();
+        taskDelete.deleteFromRealm();
+        mRealm.commitTransaction();
+    }
+
+    public void deleteAllRealm() {
+        final RealmResults<Task> tasks = mRealm.where(Task.class).findAll();
+        mRealm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                tasks.deleteAllFromRealm();
+            }
+        });
+    }
+
+
+    public void toRealm(ArrayList<Task> arrayList) {
+        mRealm.beginTransaction();
+        for (Task task : arrayList) {
+            mRealm.copyToRealmOrUpdate(task);
+        }
+        Log.d("Log: List: ", String.valueOf(arrayList.size()));
+        mRealm.commitTransaction();
     }
 
     //loading data
-    public ArrayList<Task> loadArrayList() {
+    public ArrayList<Task> fromRealm() {
+        mRealm.beginTransaction();
         ArrayList<Task> taskArrayList = new ArrayList<>();
-        Type collectionType = new TypeToken<ArrayList<Task>>() {
-        }.getType();
-        if (preferences.contains(KEY_DATA_SAVE)) {
-            taskArrayList = gson.fromJson(preferences.getString(KEY_DATA_SAVE, ""), collectionType);
+        RealmResults<Task> realmResults = mRealm.where(Task.class).findAll();
+        for (int i = 0; i < realmResults.size(); i++) {
+            taskArrayList.add(0, realmResults.get(i));
+            Log.i("Log: fromRealm", realmResults.get(i).getTaskTitle());
         }
+        mRealm.commitTransaction();
         return taskArrayList;
     }
 
-    //delete SharedPreferences file
-    public void clearDataInSharedPreferences() {
-        editor.remove(KEY_DATA_SAVE);
-        editor.clear();
-        editor.commit();
+    public Task startTask(Task task, long timeStart, int color) {
+        mRealm.beginTransaction();
+        Task taskUpdate = mRealm.where(Task.class).equalTo("mId", task.getId()).findFirst();
+        taskUpdate.setTaskColor(color);
+        taskUpdate.setTaskStartTime(timeStart);
+        mRealm.commitTransaction();
+        return taskUpdate;
+    }
+
+    public Task stopTask(Task task, long timeEnd, int color) {
+        mRealm.beginTransaction();
+        Task taskUpdate = mRealm.where(Task.class).equalTo("mId", task.getId()).findFirst();
+        taskUpdate.setTaskColor(color);
+        taskUpdate.setTaskEndTime(timeEnd);
+        mRealm.commitTransaction();
+        return taskUpdate;
+    }
+
+    public ArrayList<Task> sortAZ (ArrayList<Task> arrayList) {
+        mRealm.beginTransaction();
+        RealmResults<Task> tasks = mRealm.where(Task.class).findAll();
+        tasks = tasks.sort("mTaskTitle", Sort.ASCENDING);
+        for (int i = 0; i < tasks.size(); i++) {
+            Task task = tasks.get(i);
+            arrayList.set(i, task);
+            Log.i("Log: sortAZ", task.getTaskTitle());
+        }
+        mRealm.commitTransaction();
+        return arrayList;
+    }
+
+    public ArrayList<Task> sortZA(ArrayList<Task> arrayList) {
+        mRealm.beginTransaction();
+
+        RealmResults<Task> tasks = mRealm.where(Task.class).findAll();
+        tasks = tasks.sort("mTaskTitle", Sort.DESCENDING);
+        for (int i = 0; i < tasks.size(); i++) {
+            Task task = tasks.get(i);
+            arrayList.set(i, task);
+            Log.i("Log: sortZA", task.getTaskTitle());
+        }
+        mRealm.commitTransaction();
+        return arrayList;
+    }
+
+    public ArrayList<Task> sortStartToEnd(ArrayList<Task> arrayList) {
+        mRealm.beginTransaction();
+
+        RealmResults<Task> tasks = mRealm.where(Task.class).findAll();
+        tasks = tasks.sort("mTaskStartTime", Sort.ASCENDING);
+        for (int i = 0; i < tasks.size(); i++) {
+            Task task = tasks.get(i);
+            arrayList.set(i, task);
+            Log.i("Log: sortStartToEnd", task.getTaskTitle());
+        }
+        mRealm.commitTransaction();
+        return arrayList;
+    }
+
+    public ArrayList<Task> sortEndToStart(ArrayList<Task> arrayList) {
+        mRealm.beginTransaction();
+        RealmResults<Task> tasks = mRealm.where(Task.class).findAll();
+        tasks = tasks.sort("mTaskStartTime", Sort.DESCENDING);
+        for (int i = 0; i < tasks.size(); i++) {
+            Task task = tasks.get(i);
+            arrayList.set(i, task);
+            Log.i("Log: sortEndToStart", task.getTaskTitle());
+        }
+        mRealm.commitTransaction();
+        return arrayList;
+    }
+
+
+    public void closeRealm() {
+        if (mRealm != null) {
+            mRealm.close();
+        }
     }
 
     public void saveMenuItemChecked(int itemId) {
@@ -102,17 +183,17 @@ public class ManagerControlTask {
         return mMenuItemId;
     }
 
-    public void saveThemeColor(int color){
-        editor.putInt(KEY_THEME_COLOR, color);
-        editor.apply();
-    }
-
-    public int loadThemeColor(){
-        if (preferences.contains(KEY_THEME_COLOR)){
-            mThemeColor = preferences.getInt(KEY_THEME_COLOR, 0);
-        }
-        return mThemeColor;
-    }
+//    public void saveThemeColor(int color){
+//        editor.putInt(KEY_THEME_COLOR, color);
+//        editor.apply();
+//    }
+//
+//    public int loadThemeColor(){
+//        if (preferences.contains(KEY_THEME_COLOR)){
+//            mThemeColor = preferences.getInt(KEY_THEME_COLOR, 0);
+//        }
+//        return mThemeColor;
+//    }
 
     //initialize default colors
     public TaskColors initTaskItemColor() {
@@ -124,8 +205,10 @@ public class ManagerControlTask {
     }
 
     //update colors in Tasks
-    public void updateTaskColor(ArrayList<Task> arrayList) {
-        for (Task anArrayList : arrayList) {
+    public void updateTaskColor() {
+        mRealm.beginTransaction();
+        RealmResults<Task> realmResults = mRealm.where(Task.class).findAll();
+        for (Task anArrayList : realmResults) {
             if (anArrayList.getTaskStartTime() == 0) {
                 anArrayList.setTaskColor(mTaskColors.getDefaultColor());
             } else if (anArrayList.getTaskEndTime() == 0) {
@@ -134,7 +217,6 @@ public class ManagerControlTask {
                 anArrayList.setTaskColor(mTaskColors.getEndColor());
             }
         }
+        mRealm.commitTransaction();
     }
-
-
 }

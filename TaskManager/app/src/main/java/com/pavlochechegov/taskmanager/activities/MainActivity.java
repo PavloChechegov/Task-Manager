@@ -2,7 +2,6 @@ package com.pavlochechegov.taskmanager.activities;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Handler;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
@@ -11,10 +10,10 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import com.afollestad.materialdialogs.color.CircleView;
 import com.pavlochechegov.taskmanager.adapter.SwipeRecyclerViewAdapter;
 import com.pavlochechegov.taskmanager.fragment.DeleteDialogFragment;
 import com.pavlochechegov.taskmanager.R;
@@ -29,11 +28,8 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
         SwipeRecyclerViewAdapter.ClickListener {
 
     public static final String KEY_SAVE_STATE = "save_instance_state";
-    public static final String KEY_ITEM_LONG_CLICK = "long_click_item";
+    public static final String KEY_ITEM_EDIT_TASK = "key_edit_task";
     public static final String KEY_ITEM_POSITION = "item_position";
-    public static final String PREFERENCE_KEY_DEFAULT_COLOR = "preference_key_default_color";
-    public static final String PREFERENCE_KEY_START_TASK_COLOR = "preference_key_start_task_color";
-    public static final String PREFERENCE_KEY_END_TASK_COLOR = "preference_key_end_task_color";
     public static final String TAG_ALERT_DIALOG = "alert_dialog";
     public static final int REQUEST_CODE_ADD_TASK = 1;
     public static final int REQUEST_CODE_CHANGE_TASK = 2;
@@ -57,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mManagerControlTask = new ManagerControlTask(MainActivity.this);
+        mManagerControlTask = ManagerControlTask.getSingletonControl(MainActivity.this);
 
         if (savedInstanceState != null) {
             mTaskArrayList = savedInstanceState.getParcelableArrayList(KEY_SAVE_STATE);
@@ -74,13 +70,18 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
         //initTheme();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        //mManagerControlTask.closeRealm();
+    }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelableArrayList(KEY_SAVE_STATE, mTaskArrayList);
         if (!mTaskArrayList.isEmpty()) {
-            mManagerControlTask.saveArrayList(mTaskArrayList);
+            mManagerControlTask.toRealm(mTaskArrayList);
         }
     }
 
@@ -100,16 +101,16 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
                     break;
                 case 3:
                     mManagerControlTask.initTaskItemColor();
-                    mManagerControlTask.updateTaskColor(mTaskArrayList);
+                    mManagerControlTask.updateTaskColor();
                     break;
                 default:
                     break;
             }
         }
-        saveSortedTask(mTaskArrayList);
+        updateToRealm(mTaskArrayList);
     }
 
-    public void initTheme (){
+    public void initTheme() {
 //        mColor = mManagerControlTask.loadThemeColor();
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle(R.string.label_main_activity_current_tasks);
@@ -127,9 +128,8 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
         mRecyclerView = (RecyclerView) findViewById(R.id.recyclerViewTask);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        //initTheme();
+        initTheme();
 
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
 
@@ -137,7 +137,6 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                mTaskArrayList = mManagerControlTask.loadArrayList();
 //                mManagerControlTask.updateTaskColor(mTaskArrayList);
                 mSwipeRecyclerViewAdapter = new SwipeRecyclerViewAdapter(MainActivity.this, mTaskArrayList);
                 mRecyclerView.setAdapter(mSwipeRecyclerViewAdapter);
@@ -146,36 +145,25 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
 
         //create random number for Task and Comment
         mRandom = new Random();
-//
-//        mRecyclerView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-//            @Override
-//            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-//                Intent longClickIntent = new Intent(MainActivity.this, TaskActivity.class);
-//                longClickIntent.putExtra(KEY_ITEM_LONG_CLICK, mSwipeRecyclerViewAdapter.getItem(position));
-//                longClickIntent.putExtra(KEY_ITEM_POSITION, position);
-//                startActivityForResult(longClickIntent, REQUEST_CODE_CHANGE_TASK);
-//                return true;
-//            }
-//        });
-//        startActivity;
     }
 
-    // save ArrayList to SharedPreference
-    private void saveSortedTask(ArrayList<Task> taskArrayList) {
-        mManagerControlTask.saveArrayList(taskArrayList);
+
+    //update data in realm file
+    private void updateToRealm(ArrayList<Task> taskArrayList) {
+        mManagerControlTask.toRealm(taskArrayList);
         mSwipeRecyclerViewAdapter.notifyDataSetChanged();
     }
 
 
-    //TODO: go to TaskActivity and create Task object
-    public void addTaskToListView(View v) {
+    //TODO: go to TaskActivity and create new Task object
+    public void addNewTask(View v) {
         Intent intent = new Intent(this, TaskActivity.class);
         startActivityForResult(intent, REQUEST_CODE_ADD_TASK);
     }
 
-    public void editTask(View v, int position){
+    public void editTask(View v, int position) {
         Intent longClickIntent = new Intent(MainActivity.this, TaskActivity.class);
-        longClickIntent.putExtra(KEY_ITEM_LONG_CLICK, mSwipeRecyclerViewAdapter.getItem(position));
+        longClickIntent.putExtra(KEY_ITEM_EDIT_TASK, mSwipeRecyclerViewAdapter.getItem(position));
         longClickIntent.putExtra(KEY_ITEM_POSITION, position);
         startActivityForResult(longClickIntent, REQUEST_CODE_CHANGE_TASK);
     }
@@ -188,22 +176,26 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
         int id = mManagerControlTask.loadMenuItemChecked();
 
 //        restore checkbox in Sort item menu
-        switch (id){
+        switch (id) {
             case R.id.sort_a_z:
                 menuItem = menu.findItem(id);
                 menuItem.setChecked(true);
+                mTaskArrayList = mManagerControlTask.sortAZ(mManagerControlTask.fromRealm());
                 break;
             case R.id.sort_z_a:
                 menuItem = menu.findItem(id);
                 menuItem.setChecked(true);
+                mTaskArrayList = mManagerControlTask.sortZA(mManagerControlTask.fromRealm());
                 break;
             case R.id.sort_time_start_end:
                 menuItem = menu.findItem(id);
                 menuItem.setChecked(true);
+                mTaskArrayList = mManagerControlTask.sortStartToEnd(mManagerControlTask.fromRealm());
                 break;
             case R.id.sort_time_end_start:
                 menuItem = menu.findItem(id);
                 menuItem.setChecked(true);
+                mTaskArrayList = mManagerControlTask.sortEndToStart(mManagerControlTask.fromRealm());
                 break;
         }
         return true;
@@ -215,7 +207,7 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
 
         switch (item.getItemId()) {
             case R.id.action_add:
-                addTaskToListView(item.getActionView());
+                addNewTask(item.getActionView());
                 return true;
 
             case R.id.action_exit:
@@ -224,7 +216,6 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
 
             //generate random Task and Comment
             case R.id.action_generate_tasks:
-                mTaskArrayList.add(0, generateRandomTask());
                 addThreeScreenTasks();
                 return true;
 
@@ -249,42 +240,50 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
 
             case R.id.sort_a_z:
                 saveMenuItemChecked(item);
-                Collections.sort(mTaskArrayList, Task.AscendingTaskTitleComparator);
-                saveSortedTask(mTaskArrayList);
+//                Collections.sort(mTaskArrayList, Task.AscendingTaskTitleComparator);
+//                updateToRealm(mTaskArrayList);
+                mTaskArrayList = mManagerControlTask.sortAZ(mTaskArrayList);
+                mSwipeRecyclerViewAdapter.notifyDataSetChanged();
                 return true;
 
             case R.id.sort_z_a:
                 saveMenuItemChecked(item);
-                Collections.sort(mTaskArrayList, Task.DescendingTaskTitleComparator);
-                saveSortedTask(mTaskArrayList);
+//                Collections.sort(mTaskArrayList, Task.DescendingTaskTimeComparator);
+//                updateToRealm(mTaskArrayList);
+                mTaskArrayList = mManagerControlTask.sortZA(mTaskArrayList);
+                mSwipeRecyclerViewAdapter.notifyDataSetChanged();
                 return true;
 
             case R.id.sort_time_start_end:
                 saveMenuItemChecked(item);
-                Collections.sort(mTaskArrayList, Task.AscendingTaskTimeComparator);
-                saveSortedTask(mTaskArrayList);
+//                Collections.sort(mTaskArrayList, Task.AscendingTaskTimeComparator);
+//                updateToRealm(mTaskArrayList);
+                mTaskArrayList = mManagerControlTask.sortStartToEnd(mTaskArrayList);
+                updateToRealm(mTaskArrayList);;
                 return true;
 
             case R.id.sort_time_end_start:
                 saveMenuItemChecked(item);
-                Collections.sort(mTaskArrayList, Task.DescendingTaskTimeComparator);
-                saveSortedTask(mTaskArrayList);
+//                Collections.sort(mTaskArrayList, Task.DescendingTaskTimeComparator);
+//                updateToRealm(mTaskArrayList);
+                mTaskArrayList = mManagerControlTask.sortEndToStart(mTaskArrayList);
+                updateToRealm(mTaskArrayList);
                 return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    public void saveMenuItemChecked(MenuItem item){
+    public void saveMenuItemChecked(MenuItem item) {
         item.setChecked(true);
         mManagerControlTask.saveMenuItemChecked(item.getItemId());
     }
 
     //generate Random Task to Title and Comment fields
-    public Task generateRandomTask() {
+    public Task generateRandomTask(int i) {
         return new Task(
-                getString(R.string.task) + mRandom.nextInt(150),
-                getString(R.string.comment) +  mRandom.nextInt(150),
+                UUID.randomUUID().toString(), getString(R.string.task) + i,
+                getString(R.string.comment) + i,
                 0,
                 0,
                 defaultTaskColor);
@@ -292,31 +291,34 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
 
     //add 3 screen item in listView
     public void addThreeScreenTasks() {
-//        float o = getHeightListViewItem(mRecyclerView, mSwipeRecyclerViewAdapter);
-//        float y = mRecyclerView.getHeight();
-//        int k = ((int) (y / o)) * 3;
-//        for (int i = 2; i <= k; i++) {
-//            mTaskArrayList.add(0, generateRandomTask());
-//        }
-//        Snackbar.make(coordinatorLayout, R.string.new_task_added, Snackbar.LENGTH_SHORT).show();
-//        saveSortedTask(mTaskArrayList);
+        mTaskArrayList.add(0, generateRandomTask(1));
+        float o = mRecyclerView.getChildAt(0).getHeight(); //total height of 1 element of recyclerView
+        //float o = getHeightListViewItem(mRecyclerView);
+        float y = mRecyclerView.getHeight(); // total height of recyclerView
+        Log.i("Log: Height", y + " " + o);
+        int k = ((int) (y / o)) * 3;
+        for (int i = 2; i <= k; i++) {
+            mTaskArrayList.add(0, generateRandomTask(i));
+        }
+        Snackbar.make(coordinatorLayout, R.string.new_task_added, Snackbar.LENGTH_SHORT).show();
+        updateToRealm(mTaskArrayList);
     }
 
     //total height of 1 element of listView
-//    private int getHeightListViewItem(ListView listView, SwipeRecyclerViewAdapter taskBaseAdapter) {
-//        View mView = taskBaseAdapter.getView(0, null, listView);
-//        mView.measure(
-//                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-//                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-//        int listViewElementsHeight = mView.getMeasuredHeight();
-//        return listViewElementsHeight;
-//    }
+    private int getHeightListViewItem(RecyclerView recyclerView) {
+        View mView = recyclerView.getChildAt(0);
+        mView.measure(
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+        int listViewElementsHeight = mView.getMeasuredHeight();
+        return listViewElementsHeight;
+    }
 
     //delete ArrayList and SharedPreference data
     @Override
     public void delete() {
         mTaskArrayList.clear();
-        mManagerControlTask.clearDataInSharedPreferences();
+        mManagerControlTask.deleteAllRealm();
         mSwipeRecyclerViewAdapter.notifyDataSetChanged();
     }
 
@@ -335,7 +337,7 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
 
             @Override
             public void run() {
-                doubleBackToExitPressedOnce=false;
+                doubleBackToExitPressedOnce = false;
             }
         }, 2000);
     }

@@ -1,31 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:paddingLeft="16dp"
-              android:paddingRight="16dp"
-              android:layout_height="wrap_content">
+<RelativeLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp">
 
-    <TextView android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:id="@+id/tvTaskTitle"
-              android:singleLine="true"
-              android:textSize="@dimen/text_size"
-              android:textColor="@color/black"/>
+    <TextView
+            android:id="@+id/tvTaskTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:textColor="@color/black"
+            android:textSize="@dimen/text_size"/>
 
-    <TextView android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:maxLines="3"
-              android:textSize="@dimen/text_size_description"
-              android:id="@+id/tvTaskComment"
+    <TextView
+            android:id="@+id/tvTaskComment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tvTaskTitle"
+            android:maxLines="3"
+            android:textSize="@dimen/text_size_description"
     />
-    <TextView android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:textSize="@dimen/text_size_time"
-              android:id="@+id/tvTaskTime"
-    android:gravity="center_horizontal"
-    android:visibility="visible"/>
 
+    <TextView
+            android:id="@+id/tvTaskTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tvTaskComment"
+            android:textSize="@dimen/text_size_time"
+            android:visibility="visible"/>
 
-</LinearLayout>
+    <ImageButton
+            android:id="@+id/imageButtonPlay"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="5dp"
+            android:layout_toLeftOf="@+id/imageButtonStop"
+            android:layout_toStartOf="@+id/imageButtonStop"
+            android:background="@null"
+            android:src="@drawable/ic_play_arrow_white_48dp"/>
+
+    <ImageButton
+            android:id="@+id/imageButtonStop"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_above="@+id/tvTaskTime"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="5dp"
+            android:background="@null"
+            android:src="@drawable/ic_stop_white_48dp"/>
+</RelativeLayout>

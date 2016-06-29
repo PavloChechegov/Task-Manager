@@ -20,13 +20,16 @@
                 android:layout_height="match_parent"
                 android:background="@color/colorPrimary"
                 android:text="Edit"
+                android:textColor="@android:color/white"
         />
+
         <Button
                 android:id="@+id/btnDeleteTaskItem"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:background="@color/colorAccent"
-                android:text="Delete"/>
+                android:text="Delete"
+                android:textColor="@android:color/white"/>
     </LinearLayout>
 
     <LinearLayout
@@ -44,14 +47,6 @@
                 android:gravity="center"
                 android:src="@drawable/ic_refresh_white_24dp"/>
 
-        <!--<ImageButton-->
-                <!--android:layout_width="40dp"-->
-                <!--android:layout_height="match_parent"-->
-                <!--android:id="@+id/imgBtnResetEndTask"-->
-                <!--android:layout_weight="1"-->
-                <!--android:gravity="center"-->
-                <!--android:src="@drawable/ic_not_interested_white_24dp"-->
-                <!--android:background="@color/colorAccent"/>-->
 
     </LinearLayout>
 

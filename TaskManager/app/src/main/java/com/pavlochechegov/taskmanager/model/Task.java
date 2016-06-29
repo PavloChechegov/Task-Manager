@@ -3,27 +3,27 @@ package com.pavlochechegov.taskmanager.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import io.realm.RealmModel;
 import io.realm.RealmObject;
-import io.realm.RealmList;
-import io.realm.annotations.Ignore;
+import io.realm.annotations.PrimaryKey;
+
 import java.util.Comparator;
 
 
 public class Task extends RealmObject implements Parcelable {
 
+    @PrimaryKey
+    private String mId;
     private String mTaskTitle;
     private String mTaskComment;
     private long mTaskStartTime;
     private long mTaskEndTime;
     private int mTaskColor;
-    private int mIdTitle;
-    private int mIdComment;
 
     public Task() {
     }
 
-    public Task(String taskTitle, String taskComment, long taskStartTime, long taskEndTime, int color) {
+    public Task(String id, String taskTitle, String taskComment, long taskStartTime, long taskEndTime, int color) {
+        mId = id;
         mTaskTitle = taskTitle;
         mTaskComment = taskComment;
         mTaskStartTime = taskStartTime;
@@ -32,20 +32,13 @@ public class Task extends RealmObject implements Parcelable {
     }
 
     //getter and setter
-    public int getIdTitle() {
-        return mIdTitle;
+
+    public String getId() {
+        return mId;
     }
 
-    public void setIdTitle(int idTitle) {
-        mIdTitle = idTitle;
-    }
-
-    public int getIdComment() {
-        return mIdComment;
-    }
-
-    public void setIdComment(int idComment) {
-        mIdComment = idComment;
+    public void setId(String id) {
+        mId = id;
     }
 
     public int getTaskColor() {
@@ -95,8 +88,8 @@ public class Task extends RealmObject implements Parcelable {
         mTaskStartTime = in.readLong();
         mTaskEndTime = in.readLong();
         mTaskColor = in.readInt();
-        mIdTitle = in.readInt();
-        mIdComment = in.readInt();
+        mId = in.readString();
+
     }
 
     public static final Creator<Task> CREATOR = new Creator<Task>() {
@@ -123,8 +116,8 @@ public class Task extends RealmObject implements Parcelable {
         dest.writeLong(mTaskStartTime);
         dest.writeLong(mTaskEndTime);
         dest.writeInt(mTaskColor);
-        dest.writeInt(mIdTitle);
-        dest.writeInt(mIdComment);
+        dest.writeString(mId);
+
     }
 
     public static Comparator<Task> AscendingTaskTitleComparator = new Comparator<Task>() {

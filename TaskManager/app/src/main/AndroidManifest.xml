@@ -34,7 +34,6 @@
 
         <activity
                 android:name=".activities.SplashScreenActivity"
-                android:label="@string/title_activity_splash_screen"
                 android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

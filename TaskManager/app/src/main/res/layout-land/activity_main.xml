@@ -12,12 +12,12 @@
     <!-- Include the AppBarLayout -->
     <include layout="@layout/app_bar_layout"/>
 
-    <ListView
+    <android.support.v7.widget.RecyclerView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/recyclerViewTask"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior">
-    </ListView>
+            android:background="@drawable/gradient"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
 
     <android.support.design.widget.FloatingActionButton
             android:layout_width="wrap_content"
@@ -29,7 +29,7 @@
             app:layout_anchor="@id/recyclerViewTask"
             android:layout_margin="@dimen/button_padding"
             app:layout_anchorGravity="bottom|right|end"
-            android:onClick="addTaskToListView"/>
+            android:onClick="addNewTask"/>
 
 </android.support.design.widget.CoordinatorLayout>
 

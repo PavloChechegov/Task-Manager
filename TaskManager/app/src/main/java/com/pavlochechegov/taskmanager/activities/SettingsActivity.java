@@ -36,10 +36,10 @@ public class SettingsActivity extends AppCompatActivity implements ColorChooserD
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        mManagerControlTask = new ManagerControlTask(this);
+        mManagerControlTask = ManagerControlTask.getSingletonControl(this);
         //mColor = mManagerControlTask.loadThemeColor();
 
-        if (mColor != 0) initTheme(mColor);
+        //if (mColor != 0) initTheme(mColor);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getFragmentManager().beginTransaction().replace(R.id.frame_layout, new SettingPreferenceFragment()).commit();
@@ -67,15 +67,8 @@ public class SettingsActivity extends AppCompatActivity implements ColorChooserD
 
     @Override
     public void onColorSelection(@NonNull ColorChooserDialog dialog, @ColorInt int color) {
-//      if (dialog.isAccentMode()) {
-//            ThemeSingleton.get().positiveColor = DialogUtils.getActionTextStateList(getBaseContext(), color);
-//            ThemeSingleton.get().neutralColor = DialogUtils.getActionTextStateList(getBaseContext(), color);
-//            ThemeSingleton.get().negativeColor = DialogUtils.getActionTextStateList(getBaseContext(), color);
-//            ThemeSingleton.get().widgetColor = color;
-//      }
-        initTheme(color);
-        ;
-//        mManagerControlTask.saveThemeColor(color);
+        //initTheme(color);
+        //mManagerControlTask.saveThemeColor(color);
     }
 
     public void initTheme(int color) {
@@ -120,37 +113,16 @@ public class SettingsActivity extends AppCompatActivity implements ColorChooserD
 
             Preference preferenceButton = findPreference("default_settings");
 
-            Preference preferenceTime = findPreference("pref_task_time_dialog");
-
-
-
-//            preferenceDate.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-//                @Override
-//                public boolean onPreferenceClick(Preference preference) {
-//                    showDateDialog();
-//                    return true;
-//                }
-//            });
-
-
             preferenceButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
                     defaultColorTask.forceSetValue(getResources().getColor(R.color.default_task_color));
                     startColorTask.forceSetValue(getResources().getColor(R.color.start_task_color));
                     endColorTask.forceSetValue(getResources().getColor(R.color.finish_task_color));
-
                     return true;
                 }
             });
         }
-
-
-//        private void showDateDialog() {
-//
-//            };
-
-
     }
 
 
