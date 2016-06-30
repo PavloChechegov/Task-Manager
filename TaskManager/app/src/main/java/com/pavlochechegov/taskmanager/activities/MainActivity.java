@@ -18,35 +18,34 @@ import com.pavlochechegov.taskmanager.adapter.SwipeRecyclerViewAdapter;
 import com.pavlochechegov.taskmanager.fragment.DeleteDialogFragment;
 import com.pavlochechegov.taskmanager.R;
 import com.pavlochechegov.taskmanager.model.Task;
+import com.pavlochechegov.taskmanager.model.TaskColors;
 import com.pavlochechegov.taskmanager.utils.ManagerControlTask;
 
 import java.util.*;
 
 import static com.pavlochechegov.taskmanager.activities.TaskActivity.KEY_TASK_EXTRA;
 
-public class MainActivity extends AppCompatActivity implements DeleteDialogFragment.DeleteAllItem,
-        SwipeRecyclerViewAdapter.ClickListener {
+public class MainActivity extends AppCompatActivity implements DeleteDialogFragment.DeleteAllItem{
 
     public static final String KEY_SAVE_STATE = "save_instance_state";
     public static final String KEY_ITEM_EDIT_TASK = "key_edit_task";
     public static final String KEY_ITEM_POSITION = "item_position";
     public static final String TAG_ALERT_DIALOG = "alert_dialog";
+
     public static final int REQUEST_CODE_ADD_TASK = 1;
     public static final int REQUEST_CODE_CHANGE_TASK = 2;
     public static final int REQUEST_CODE_SETTING = 3;
+
     private RecyclerView mRecyclerView;
     private ArrayList<Task> mTaskArrayList;
-    private SwipeRecyclerViewAdapter mSwipeRecyclerViewAdapter;
+    public static SwipeRecyclerViewAdapter sSwipeRecyclerViewAdapter;
     private Task mTask;
-    private long mTaskTimeStart, mTaskTimeEnd;
     private int mIntItemPosition;
     private ManagerControlTask mManagerControlTask;
     private CoordinatorLayout coordinatorLayout;
     private Random mRandom;
-    private int defaultTaskColor, startColor, endColor;
-    private SharedPreferences mDefaultSetting;
     private boolean doubleBackToExitPressedOnce = false;
-    private int mColor;
+    private TaskColors mColors;
     Toolbar toolbar;
 
     @Override
@@ -60,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
         } else {
             mTaskArrayList = new ArrayList<>();
         }
-        mManagerControlTask.initTaskItemColor();
+        mColors = mManagerControlTask.initTaskItemColor();
         initUI();
     }
 
@@ -137,9 +136,11 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-//                mManagerControlTask.updateTaskColor(mTaskArrayList);
-                mSwipeRecyclerViewAdapter = new SwipeRecyclerViewAdapter(MainActivity.this, mTaskArrayList);
-                mRecyclerView.setAdapter(mSwipeRecyclerViewAdapter);
+                mTaskArrayList = mManagerControlTask.fromRealm();
+                mManagerControlTask.initTaskItemColor();
+                mManagerControlTask.updateTaskColor();
+                sSwipeRecyclerViewAdapter = new SwipeRecyclerViewAdapter(MainActivity.this, mTaskArrayList);
+                mRecyclerView.setAdapter(sSwipeRecyclerViewAdapter);
             }
         }, 500);
 
@@ -151,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
     //update data in realm file
     private void updateToRealm(ArrayList<Task> taskArrayList) {
         mManagerControlTask.toRealm(taskArrayList);
-        mSwipeRecyclerViewAdapter.notifyDataSetChanged();
+        sSwipeRecyclerViewAdapter.notifyDataSetChanged();
     }
 
 
@@ -163,7 +164,7 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
 
     public void editTask(View v, int position) {
         Intent longClickIntent = new Intent(MainActivity.this, TaskActivity.class);
-        longClickIntent.putExtra(KEY_ITEM_EDIT_TASK, mSwipeRecyclerViewAdapter.getItem(position));
+        longClickIntent.putExtra(KEY_ITEM_EDIT_TASK, sSwipeRecyclerViewAdapter.getItem(position));
         longClickIntent.putExtra(KEY_ITEM_POSITION, position);
         startActivityForResult(longClickIntent, REQUEST_CODE_CHANGE_TASK);
     }
@@ -243,7 +244,7 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
 //                Collections.sort(mTaskArrayList, Task.AscendingTaskTitleComparator);
 //                updateToRealm(mTaskArrayList);
                 mTaskArrayList = mManagerControlTask.sortAZ(mTaskArrayList);
-                mSwipeRecyclerViewAdapter.notifyDataSetChanged();
+                sSwipeRecyclerViewAdapter.notifyDataSetChanged();
                 return true;
 
             case R.id.sort_z_a:
@@ -251,7 +252,7 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
 //                Collections.sort(mTaskArrayList, Task.DescendingTaskTimeComparator);
 //                updateToRealm(mTaskArrayList);
                 mTaskArrayList = mManagerControlTask.sortZA(mTaskArrayList);
-                mSwipeRecyclerViewAdapter.notifyDataSetChanged();
+                sSwipeRecyclerViewAdapter.notifyDataSetChanged();
                 return true;
 
             case R.id.sort_time_start_end:
@@ -259,7 +260,7 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
 //                Collections.sort(mTaskArrayList, Task.AscendingTaskTimeComparator);
 //                updateToRealm(mTaskArrayList);
                 mTaskArrayList = mManagerControlTask.sortStartToEnd(mTaskArrayList);
-                updateToRealm(mTaskArrayList);;
+                updateToRealm(mTaskArrayList);
                 return true;
 
             case R.id.sort_time_end_start:
@@ -286,7 +287,7 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
                 getString(R.string.comment) + i,
                 0,
                 0,
-                defaultTaskColor);
+                mColors.getDefaultColor());
     }
 
     //add 3 screen item in listView
@@ -319,7 +320,7 @@ public class MainActivity extends AppCompatActivity implements DeleteDialogFragm
     public void delete() {
         mTaskArrayList.clear();
         mManagerControlTask.deleteAllRealm();
-        mSwipeRecyclerViewAdapter.notifyDataSetChanged();
+        sSwipeRecyclerViewAdapter.notifyDataSetChanged();
     }
 
     //double press back button to exit

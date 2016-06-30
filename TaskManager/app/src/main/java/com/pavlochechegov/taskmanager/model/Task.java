@@ -18,6 +18,7 @@ public class Task extends RealmObject implements Parcelable {
     private long mTaskStartTime;
     private long mTaskEndTime;
     private int mTaskColor;
+    private boolean isStart;
 
     public Task() {
     }
@@ -32,6 +33,14 @@ public class Task extends RealmObject implements Parcelable {
     }
 
     //getter and setter
+
+    public boolean getIsStart() {
+        return isStart;
+    }
+
+    public void setIsStart(boolean isStart) {
+        this.isStart = isStart;
+    }
 
     public String getId() {
         return mId;

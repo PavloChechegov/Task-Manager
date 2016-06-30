@@ -24,7 +24,7 @@ public class ManagerControlTask {
     private static ManagerControlTask sManagerControlTask;
     private SharedPreferences mDefaultSetting;
     private Context mContext;
-    private TaskColors mTaskColors;
+    private static TaskColors sTaskColors;
     RealmConfiguration mRealmConfiguration;
     private Realm mRealm;
 
@@ -35,7 +35,7 @@ public class ManagerControlTask {
         return sManagerControlTask;
     }
 
-    public ManagerControlTask(Context context) {
+    private ManagerControlTask(Context context) {
         mContext = context;
         mRealmConfiguration = new RealmConfiguration
                 .Builder(mContext)
@@ -46,7 +46,7 @@ public class ManagerControlTask {
         Realm.setDefaultConfiguration(mRealmConfiguration);
         // Create a new empty instance of Realm
         mRealm = Realm.getDefaultInstance();
-//        mRealm.setAutoRefresh(true);
+        initTaskItemColor();
         preferences = context.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
         editor = preferences.edit();
     }
@@ -110,7 +110,7 @@ public class ManagerControlTask {
         return taskUpdate;
     }
 
-    public ArrayList<Task> sortAZ (ArrayList<Task> arrayList) {
+    public ArrayList<Task> sortAZ(ArrayList<Task> arrayList) {
         mRealm.beginTransaction();
         RealmResults<Task> tasks = mRealm.where(Task.class).findAll();
         tasks = tasks.sort("mTaskTitle", Sort.ASCENDING);
@@ -198,10 +198,11 @@ public class ManagerControlTask {
     //initialize default colors
     public TaskColors initTaskItemColor() {
         mDefaultSetting = PreferenceManager.getDefaultSharedPreferences(mContext);
-        mTaskColors = new TaskColors(mDefaultSetting.getInt(PREFERENCE_KEY_DEFAULT_COLOR, 0),
+        sTaskColors = new TaskColors(
+                mDefaultSetting.getInt(PREFERENCE_KEY_DEFAULT_COLOR, 0),
                 mDefaultSetting.getInt(PREFERENCE_KEY_START_TASK_COLOR, 0),
                 mDefaultSetting.getInt(PREFERENCE_KEY_END_TASK_COLOR, 0));
-        return mTaskColors;
+        return sTaskColors;
     }
 
     //update colors in Tasks
@@ -210,11 +211,11 @@ public class ManagerControlTask {
         RealmResults<Task> realmResults = mRealm.where(Task.class).findAll();
         for (Task anArrayList : realmResults) {
             if (anArrayList.getTaskStartTime() == 0) {
-                anArrayList.setTaskColor(mTaskColors.getDefaultColor());
+                anArrayList.setTaskColor(sTaskColors.getDefaultColor());
             } else if (anArrayList.getTaskEndTime() == 0) {
-                anArrayList.setTaskColor(mTaskColors.getStartColor());
+                anArrayList.setTaskColor(sTaskColors.getStartColor());
             } else {
-                anArrayList.setTaskColor(mTaskColors.getEndColor());
+                anArrayList.setTaskColor(sTaskColors.getEndColor());
             }
         }
         mRealm.commitTransaction();

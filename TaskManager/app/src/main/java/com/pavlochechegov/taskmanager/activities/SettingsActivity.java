@@ -18,6 +18,7 @@ import com.afollestad.materialdialogs.color.CircleView;
 import com.afollestad.materialdialogs.color.ColorChooserDialog;
 import com.pavlochechegov.taskmanager.R;
 
+import com.pavlochechegov.taskmanager.pref_widget.TimePreference;
 import com.pavlochechegov.taskmanager.utils.ManagerControlTask;
 import yuku.ambilwarna.widget.AmbilWarnaPreference;
 
@@ -38,7 +39,6 @@ public class SettingsActivity extends AppCompatActivity implements ColorChooserD
 
         mManagerControlTask = ManagerControlTask.getSingletonControl(this);
         //mColor = mManagerControlTask.loadThemeColor();
-
         //if (mColor != 0) initTheme(mColor);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -99,8 +99,10 @@ public class SettingsActivity extends AppCompatActivity implements ColorChooserD
 
 
     public static class SettingPreferenceFragment extends PreferenceFragment {
+        private static final String KEY_ALARM_TIME = "pref_task_time_dialog";
         Context mContext;
         AmbilWarnaPreference defaultColorTask, startColorTask, endColorTask;
+        TimePreference mTimePreference;
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
@@ -111,6 +113,8 @@ public class SettingsActivity extends AppCompatActivity implements ColorChooserD
             startColorTask = (AmbilWarnaPreference) findPreference("preference_key_start_task_color");
             endColorTask = (AmbilWarnaPreference) findPreference("preference_key_end_task_color");
 
+            mTimePreference = (TimePreference) findPreference(KEY_ALARM_TIME);
+
             Preference preferenceButton = findPreference("default_settings");
 
             preferenceButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
@@ -119,6 +123,8 @@ public class SettingsActivity extends AppCompatActivity implements ColorChooserD
                     defaultColorTask.forceSetValue(getResources().getColor(R.color.default_task_color));
                     startColorTask.forceSetValue(getResources().getColor(R.color.start_task_color));
                     endColorTask.forceSetValue(getResources().getColor(R.color.finish_task_color));
+
+                    mTimePreference.setDefaultTime(1, 0);
                     return true;
                 }
             });
