@@ -41,23 +41,5 @@ public class DeleteDialogFragment extends DialogFragment {
                     }
                 }).create();
 
-
-//        return new AlertDialog.Builder(getActivity())
-//                .setTitle("Delete tasks")
-//                .setMessage("Do you want to delete all tasks?")
-//                .setIcon(R.drawable.ic_delete_forever_purple_600_24dp)
-//                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int which) {
-//                        ((DeleteAllItem) getActivity()).delete();
-//                    }
-//                })
-//                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int which) {
-//                        dialog.cancel();
-//                    }
-//                }).create();
-
     }
 }

@@ -11,6 +11,7 @@ import java.util.Comparator;
 
 public class Task extends RealmObject implements Parcelable {
 
+    private static final int TASK_STOP = 4;
     @PrimaryKey
     private String mId;
     private String mTaskTitle;
@@ -18,7 +19,14 @@ public class Task extends RealmObject implements Parcelable {
     private long mTaskStartTime;
     private long mTaskEndTime;
     private int mTaskColor;
-    private boolean isStart;
+    private boolean isPause;
+    private boolean isStop;
+    private long mTimePause;
+
+    public static final int TASK_START = 1;
+    public static final int TASK_PAUSE = 2;
+    public static final int TASK_RESUME = 3;
+
 
     public Task() {
     }
@@ -34,12 +42,32 @@ public class Task extends RealmObject implements Parcelable {
 
     //getter and setter
 
-    public boolean getIsStart() {
-        return isStart;
+    //get status of task
+    public int getTaskStatus() {
+        if (getTaskStartTime() == 0 && !isPause()) {
+            return TASK_START;
+        } else if (isPause()) {
+            return TASK_PAUSE;
+        } else {
+            return TASK_RESUME;
+        }
+
     }
 
-    public void setIsStart(boolean isStart) {
-        this.isStart = isStart;
+    public boolean isPause() {
+        return isPause;
+    }
+
+    public void setPause(boolean pause) {
+        isPause = pause;
+    }
+
+    public boolean isStop() {
+        return isStop;
+    }
+
+    public void setStop(boolean stop) {
+        isStop = stop;
     }
 
     public String getId() {
@@ -159,5 +187,18 @@ public class Task extends RealmObject implements Parcelable {
             return (int) (taskTime2.getTaskStartTime() - taskTime1.getTaskStartTime());
         }
     };
+
+    public long getTimePause() {
+        return mTimePause;
+    }
+
+    public void setTimePause(long timePause) {
+        mTimePause = timePause;
+    }
+
+    public long getTimeDifference() {
+        return getTimePause() != 0 ? getTimePause() - getTaskStartTime() : 0;
+    }
+
 }
 

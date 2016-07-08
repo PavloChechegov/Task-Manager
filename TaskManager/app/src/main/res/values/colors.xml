@@ -9,4 +9,6 @@
     <color name="start_task_color">#FFF9C4</color>
     <color name="finish_task_color">#FFCCBC</color>
     <color name="default_task_color">#C8E6C9</color>
+
+    <color name="button_pause_color">#9C27B0</color>
 </resources>

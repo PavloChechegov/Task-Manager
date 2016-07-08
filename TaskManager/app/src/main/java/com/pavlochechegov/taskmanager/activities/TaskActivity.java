@@ -1,6 +1,9 @@
 package com.pavlochechegov.taskmanager.activities;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
@@ -15,27 +18,44 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.Toast;
 import com.pavlochechegov.taskmanager.R;
+import com.pavlochechegov.taskmanager.fragment.ChooseAvatarDialog;
 import com.pavlochechegov.taskmanager.model.Task;
 import com.pavlochechegov.taskmanager.model.TaskColors;
-import com.pavlochechegov.taskmanager.utils.ManagerControlTask;
+import com.pavlochechegov.taskmanager.utils.AvatarSaver;
+import com.pavlochechegov.taskmanager.utils.RealmControl;
+import com.soundcloud.android.crop.Crop;
+import de.hdodenhof.circleimageview.CircleImageView;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.UUID;
 
 import static com.pavlochechegov.taskmanager.activities.MainActivity.KEY_ITEM_EDIT_TASK;
 import static com.pavlochechegov.taskmanager.activities.MainActivity.KEY_ITEM_POSITION;
 
-public class TaskActivity extends AppCompatActivity {
+public class TaskActivity extends AppCompatActivity implements ChooseAvatarDialog.ChooseAvatar {
 
     public static final String KEY_TASK_EXTRA = "key_task_extra";
     private static final int REQUEST_CODE_VOICE = 4;
+    private static final int REQUEST_GALLERY = 5;
+    private static final int REQUEST_CAMERA = 6;
+
+    private static final String TAG_AVATAR_CHOOSE_DIALOG = "avatar_chosen_dialog";
+
     private EditText mEditTextTaskTitle, mEditTextTaskComment;
     private Task mTask;
     protected int positionOfItem;
     private CoordinatorLayout mCoordinatorLayout;
-    private ManagerControlTask managerControlTask;
+    private RealmControl mRealmControl;
     private TaskColors taskColors;
     private TextInputLayout mInputLayoutTitle, mInputLayoutComment;
+    private CircleImageView mAvatarImage;
+    private AvatarSaver mAvatarSaver;
+    private static Uri pathFile;
+    private Bitmap mBitmapAvatar;
+private Uri mUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,8 +63,9 @@ public class TaskActivity extends AppCompatActivity {
         setContentView(R.layout.activity_task);
 
         initUI();
-        managerControlTask = ManagerControlTask.getSingletonControl(this);
-        taskColors = managerControlTask.initTaskItemColor();
+        mRealmControl = RealmControl.getSingletonControl(this);
+        taskColors = mRealmControl.initTaskItemColor();
+        mAvatarSaver = new AvatarSaver(this);
 
         Intent intent = getIntent();
         if (intent.hasExtra(KEY_ITEM_EDIT_TASK)) {
@@ -52,7 +73,13 @@ public class TaskActivity extends AppCompatActivity {
             positionOfItem = intent.getIntExtra(KEY_ITEM_POSITION, DEFAULT_KEYS_DIALER);
             mEditTextTaskTitle.setText(mTask.getTaskTitle());
             mEditTextTaskComment.setText(mTask.getTaskComment());
+            if (loadAvatar(mTask.getId()) != null){
+                mAvatarImage.setImageBitmap(loadAvatar(mTask.getId()));
+            }
 
+        } else {
+            mTask = new Task();
+            mTask.setId(UUID.randomUUID().toString());
         }
     }
 
@@ -67,6 +94,7 @@ public class TaskActivity extends AppCompatActivity {
         mInputLayoutComment = (TextInputLayout) findViewById(R.id.txt_input_layout_comment);
         mEditTextTaskTitle.addTextChangedListener(new MyTextWatcher(mEditTextTaskTitle));
         mEditTextTaskComment.addTextChangedListener(new MyTextWatcher(mEditTextTaskComment));
+        mAvatarImage = (CircleImageView) findViewById(R.id.imageViewAvatar);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
 
     }
@@ -76,22 +104,14 @@ public class TaskActivity extends AppCompatActivity {
         finish();
     }
 
+
     // TODO: create Task object and send to MainActivity
     public void createTask(View view) {
-        Intent intent = new Intent();
+        Intent intent = getIntent();
 
-        if (mTask == null) {
-            if (validateTitle() && validateComment()) {
-                mTask = new Task(UUID.randomUUID().toString(), mEditTextTaskTitle.getText().toString(),
-                        mEditTextTaskComment.getText().toString(), 0, 0, taskColors.getDefaultColor());
-                intent.putExtra(KEY_TASK_EXTRA, mTask);
-                setResult(RESULT_OK, intent);
-                finish();
-            } else {
-                Snackbar.make(mCoordinatorLayout, R.string.empty_fields, Snackbar.LENGTH_SHORT).show();
-            }
+        if (intent.hasExtra(KEY_ITEM_POSITION)) {
 
-        } else {
+            //edit task
             if (validateTitle() && validateComment()) {
                 mTask.setTaskTitle(mEditTextTaskTitle.getText().toString());
                 mTask.setTaskComment(mEditTextTaskComment.getText().toString());
@@ -102,18 +122,35 @@ public class TaskActivity extends AppCompatActivity {
             } else {
                 Snackbar.make(mCoordinatorLayout, R.string.empty_fields, Snackbar.LENGTH_SHORT).show();
             }
+
+        } else {
+
+            //create new task
+            if (validateTitle() && validateComment()) {
+                mTask.setTaskTitle(mEditTextTaskTitle.getText().toString());
+                mTask.setTaskComment(mEditTextTaskComment.getText().toString());
+                mTask.setTaskColor(taskColors.getDefaultColor());
+                intent.putExtra(KEY_TASK_EXTRA, mTask);
+                setResult(RESULT_OK, intent);
+                finish();
+            } else {
+                Snackbar.make(mCoordinatorLayout, R.string.empty_fields, Snackbar.LENGTH_SHORT).show();
+            }
         }
 
     }
 
+    public void chooseAvatar(View view) {
+        new ChooseAvatarDialog().show(getSupportFragmentManager(), TAG_AVATAR_CHOOSE_DIALOG);
+    }
+
 
     private boolean validateTitle() {
-        mInputLayoutComment.setError(null);
-        if (mEditTextTaskTitle.getText().toString().length() <= 5) {
+        mInputLayoutTitle.setError(null);
+        if (mEditTextTaskTitle.getText().toString().trim().length() <= 3) {
             mInputLayoutTitle.setError(getString(R.string.err_msg_title));
             mInputLayoutTitle.setErrorEnabled(true);
             requestFocus(mEditTextTaskTitle);
-
             return false;
         } else {
             mInputLayoutTitle.setErrorEnabled(false);
@@ -123,11 +160,11 @@ public class TaskActivity extends AppCompatActivity {
 
     private boolean validateComment() {
         mInputLayoutComment.setError(null);
-        if (mEditTextTaskComment.getText().toString().isEmpty()) {
+        if (mEditTextTaskComment.getText().toString().trim().isEmpty()) {
             mInputLayoutComment.setError(getString(R.string.err_msg_comment));
             mInputLayoutComment.setErrorEnabled(true);
-            requestFocus(mEditTextTaskComment);
 
+            requestFocus(mEditTextTaskComment);
             return false;
         } else {
             mInputLayoutComment.setErrorEnabled(false);
@@ -140,6 +177,95 @@ public class TaskActivity extends AppCompatActivity {
             getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         }
     }
+
+    @Override
+    public void cameraIntent() {
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(intent, REQUEST_CAMERA);
+    }
+
+    @Override
+    public void galleryIntent() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), REQUEST_GALLERY);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (data != null && resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case REQUEST_CODE_VOICE:
+                    if (mEditTextTaskTitle.isFocused()) {
+                        mEditTextTaskTitle.setText(data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS).get(0));
+                        break;
+                    } else {
+                        mEditTextTaskComment.setText(data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS).get(0));
+                    }
+                    break;
+
+                case REQUEST_GALLERY:
+                    Uri uri = data.getData();
+                    Uri destination = Uri.fromFile(new File(getCacheDir(), "name"));
+                    Crop.of(uri, destination).asSquare().start(this);
+                    mUri = destination;
+                    break;
+
+                case REQUEST_CAMERA:
+                    mBitmapAvatar = (Bitmap) data.getExtras().get("data");
+                    avatarUpdate(mBitmapAvatar);
+                    break;
+
+                case Crop.REQUEST_CROP:
+
+                    try {
+                        mBitmapAvatar = MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), mUri);
+                        avatarUpdate(mBitmapAvatar);
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+
+                default:
+                    break;
+            }
+
+        } else Toast.makeText(getApplicationContext(), "Please pick photo", Toast.LENGTH_SHORT).show();
+    }
+
+    private void avatarUpdate(Bitmap bitmap) {
+        try {
+            saveAvatar(bitmap, mTask.getId());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        mAvatarImage.setImageBitmap(loadAvatar(mTask.getId()));
+    }
+
+
+    public Bitmap loadAvatar(String uuidName) {
+        File myFile = new File(getFilesDir(), "/avatar/");
+        return mAvatarSaver
+                .setDirectoryName(myFile)
+                .setFileName(uuidName + "avatar.png")
+                .load();
+    }
+
+    public void saveAvatar(Bitmap bitmap, String uuidName) throws IOException {
+        File myFile = new File(getFilesDir(), "/avatar/");
+        int width = mAvatarImage.getWidth();
+        int height = mAvatarImage.getHeight();
+        Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, width, height, false);
+        mAvatarSaver
+                .setDirectoryName(myFile)
+                .setFileName(uuidName + "avatar.png")
+                .save(resizedBitmap);
+    }
+
 
     private class MyTextWatcher implements TextWatcher {
 
@@ -174,7 +300,7 @@ public class TaskActivity extends AppCompatActivity {
                 createTask(item.getActionView());
                 return true;
             case R.id.action_cancel:
-                finish();
+                cancelTask(item.getActionView());
                 return true;
             case R.id.action_voice:
                 createTaskWithVoice();
@@ -194,17 +320,5 @@ public class TaskActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.task_activity_menu, menu);
         return true;
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_CODE_VOICE && resultCode == RESULT_OK) {
-            if (mEditTextTaskTitle.isFocused()) {
-                mEditTextTaskTitle.setText(data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS).get(0));
-            } else {
-                mEditTextTaskComment.setText(data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS).get(0));
-            }
-        }
-        super.onActivityResult(requestCode, resultCode, data);
     }
 }

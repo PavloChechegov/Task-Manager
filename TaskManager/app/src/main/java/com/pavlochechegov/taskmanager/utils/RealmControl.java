@@ -10,7 +10,7 @@ import io.realm.*;
 
 import java.util.ArrayList;
 
-public class ManagerControlTask {
+public class RealmControl {
     private static final String APP_PREFERENCES = "app_preferences";
     private static final String KEY_ITEM_CHECKED = "key_item_checked";
     private static final String KEY_THEME_COLOR = "key_theme_color";
@@ -21,21 +21,21 @@ public class ManagerControlTask {
     private SharedPreferences.Editor editor;
     private int mMenuItemId;
     private int mThemeColor;
-    private static ManagerControlTask sManagerControlTask;
+    private static RealmControl sRealmControl;
     private SharedPreferences mDefaultSetting;
     private Context mContext;
     private static TaskColors sTaskColors;
     RealmConfiguration mRealmConfiguration;
     private Realm mRealm;
 
-    public static ManagerControlTask getSingletonControl(Context context) {
-        if (sManagerControlTask == null) {
-            sManagerControlTask = new ManagerControlTask(context.getApplicationContext());
+    public static RealmControl getSingletonControl(Context context) {
+        if (sRealmControl == null) {
+            sRealmControl = new RealmControl(context.getApplicationContext());
         }
-        return sManagerControlTask;
+        return sRealmControl;
     }
 
-    private ManagerControlTask(Context context) {
+    private RealmControl(Context context) {
         mContext = context;
         mRealmConfiguration = new RealmConfiguration
                 .Builder(mContext)
@@ -92,11 +92,29 @@ public class ManagerControlTask {
         return taskArrayList;
     }
 
+    public Task resumeTask(Task task, long timeDifferencTime){
+        mRealm.beginTransaction();
+        Task taskUpdate = mRealm.where(Task.class).equalTo("mId", task.getId()).findFirst();
+        taskUpdate.setPause(true);
+        mRealm.commitTransaction();
+        return taskUpdate;
+    }
+
     public Task startTask(Task task, long timeStart, int color) {
         mRealm.beginTransaction();
         Task taskUpdate = mRealm.where(Task.class).equalTo("mId", task.getId()).findFirst();
         taskUpdate.setTaskColor(color);
         taskUpdate.setTaskStartTime(timeStart);
+        taskUpdate.setPause(true);
+        mRealm.commitTransaction();
+        return taskUpdate;
+    }
+
+    public Task pauseTask(Task task, long timePause){
+        mRealm.beginTransaction();
+        Task taskUpdate = mRealm.where(Task.class).equalTo("mId", task.getId()).findFirst();
+        taskUpdate.setTimePause(timePause);
+        taskUpdate.setPause(false);
         mRealm.commitTransaction();
         return taskUpdate;
     }
@@ -106,6 +124,7 @@ public class ManagerControlTask {
         Task taskUpdate = mRealm.where(Task.class).equalTo("mId", task.getId()).findFirst();
         taskUpdate.setTaskColor(color);
         taskUpdate.setTaskEndTime(timeEnd);
+        taskUpdate.setStop(true);
         mRealm.commitTransaction();
         return taskUpdate;
     }

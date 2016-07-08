@@ -38,5 +38,19 @@
     <string name="err_msg_title">Enter full task title</string>
     <string name="err_msg_comment">Enter task comment</string>
     <string name="err_msg_title_length">Your task name smaller than must be</string>
+    <string-array name="months_array">
+        <item>January</item>
+        <item>February</item>
+        <item>March</item>
+        <item>April</item>
+        <item>May</item>
+        <item>June</item>
+        <item>July</item>
+        <item>August</item>
+        <item>September</item>
+        <item>October</item>
+        <item>November</item>
+        <item>December</item>
+    </string-array>
 
 </resources>

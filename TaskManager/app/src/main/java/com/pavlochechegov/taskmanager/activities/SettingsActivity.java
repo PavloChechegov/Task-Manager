@@ -1,6 +1,5 @@
 package com.pavlochechegov.taskmanager.activities;
 
-import android.app.DatePickerDialog;
 import android.content.Context;
 import android.os.Build;
 import android.preference.Preference;
@@ -13,22 +12,18 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.DatePicker;
 import com.afollestad.materialdialogs.color.CircleView;
 import com.afollestad.materialdialogs.color.ColorChooserDialog;
 import com.pavlochechegov.taskmanager.R;
 
 import com.pavlochechegov.taskmanager.pref_widget.TimePreference;
-import com.pavlochechegov.taskmanager.utils.ManagerControlTask;
+import com.pavlochechegov.taskmanager.utils.RealmControl;
 import yuku.ambilwarna.widget.AmbilWarnaPreference;
-
-import java.util.Calendar;
-import java.util.Date;
 
 public class SettingsActivity extends AppCompatActivity implements ColorChooserDialog.ColorCallback {
     private Toolbar toolbar;
     private int mColor;
-    private ManagerControlTask mManagerControlTask;
+    private RealmControl mRealmControl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,8 +32,8 @@ public class SettingsActivity extends AppCompatActivity implements ColorChooserD
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        mManagerControlTask = ManagerControlTask.getSingletonControl(this);
-        //mColor = mManagerControlTask.loadThemeColor();
+        mRealmControl = RealmControl.getSingletonControl(this);
+        //mColor = mRealmControl.loadThemeColor();
         //if (mColor != 0) initTheme(mColor);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -68,7 +63,7 @@ public class SettingsActivity extends AppCompatActivity implements ColorChooserD
     @Override
     public void onColorSelection(@NonNull ColorChooserDialog dialog, @ColorInt int color) {
         //initTheme(color);
-        //mManagerControlTask.saveThemeColor(color);
+        //mRealmControl.saveThemeColor(color);
     }
 
     public void initTheme(int color) {
